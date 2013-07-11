@@ -17,13 +17,11 @@
 #import "FUBookmarkButtonSeparator.h"
 #import "FUBookmarkBarOverflowButton.h"
 #import "FUBookmarkController.h"
-#import "FUBookmarkWindowController.h"
 #import "FUBookmark.h"
 #import "FUDocumentController.h"
 #import "FUWindowController.h"
 #import "FUUtils.h"
-#import "FUNotifications.h"
-#import "NSPasteboard+FUAdditions.h"
+#import "NSString+FUAdditions.h"
 #import "WebURLsWithTitles.h"
 
 #define BUTTON_SPACING 4
@@ -32,16 +30,17 @@
 #define SEPARATOR_MIN_X 3
 
 @interface FUBookmarkBar (Private)
-- (NSButton *)newButtonWithBookmark:(FUBookmark *)bmark;
+- (NSButton *)newButtonWithItem:(id)item;
 - (void)performActionForButton:(id)sender;
 - (void)updateSeparatorForPoint:(NSPoint)p;
 - (FUBookmarkBarButton *)buttonAtX:(CGFloat)x;
-- (void)addButtonForBookmark:(FUBookmark *)bmark atIndex:(NSInteger)i;
-- (void)addBookmark:(FUBookmark *)bmark atIndex:(NSInteger)i;
+- (void)addButtonForItem:(id)item atIndex:(NSInteger)index;
+- (void)addItem:(id)item atIndex:(NSInteger)index;
 - (void)createOverflowMenu;
 - (void)layoutButtons;
+- (void)bookmarksChanged:(NSNotification *)n;
 - (void)removeAllButtons;
-- (void)postBookmarksDidChangeNotification;
+- (void)postBookmarksChangedNotification;
 @end
 
 @implementation FUBookmarkBar
@@ -52,7 +51,7 @@
         [overflowButton setTarget:self];
 
         self.separator = [[[FUBookmarkButtonSeparator alloc] init] autorelease];
-        self.buttons = [NSMutableArray array];
+        [self setButtons:[NSMutableArray array]];
                 
         NSArray *types = [NSArray arrayWithObjects:WebURLsWithTitlesPboardType, NSURLPboardType, nil];
         [self registerForDraggedTypes:types];
@@ -76,15 +75,20 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
-    [self bookmarksDidChange:nil];
+    [self bookmarksChanged:nil];
 
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
-    [nc addObserver:self selector:@selector(bookmarksDidChange:) name:FUBookmarksDidChangeNotification object:nil];
-//    [nc addObserver:self selector:@selector(windowDidBecomeMain:) name:NSWindowDidBecomeMainNotification object:[self window]];
-//    [nc addObserver:self selector:@selector(windowDidResignMain:) name:NSWindowDidResignMainNotification object:[self window]];    
+    [nc addObserver:self selector:@selector(bookmarksChanged:) name:FUBookmarksChangedNotification object:nil];
+    [nc addObserver:self selector:@selector(windowDidBecomeMain:) name:NSWindowDidBecomeMainNotification object:[self window]];
+    [nc addObserver:self selector:@selector(windowDidResignMain:) name:NSWindowDidResignMainNotification object:[self window]];    
 
     NSColor *bgColor = FUMainTabBackgroundColor();
     self.mainBgGradient = [[[NSGradient alloc] initWithStartingColor:[bgColor colorWithAlphaComponent:.65] endingColor:bgColor] autorelease];
+    
+//    NSColor *color0 = [NSColor colorWithDeviceRed:188.0/255.0 green:200.0/255.0 blue:213.0/255.0 alpha:1.0];
+//    NSColor *color1 = [NSColor colorWithDeviceRed:127.0/255.0 green:150.0/255.0 blue:177.0/255.0 alpha:1.0];
+//    self.mainBgGradient = [[[NSGradient alloc] initWithStartingColor:color0 endingColor:color1] autorelease];
+    
     bgColor = FUNonMainTabBackgroundColor();
     self.nonMainBgGradient = [[[NSGradient alloc] initWithStartingColor:[bgColor colorWithAlphaComponent:.45] endingColor:bgColor] autorelease];
     self.mainTopBorderColor = [NSColor colorWithDeviceWhite:.4 alpha:1];
@@ -93,25 +97,6 @@
     self.nonMainTopBevelColor = [NSColor colorWithDeviceWhite:.9 alpha:1];
     self.mainBottomBevelColor = nil;
     self.nonMainBottomBevelColor = nil;
-}
-
-
-- (BOOL)shouldDrawTopBorder {
-    return YES; //[[[self window] toolbar] isVisible];
-}
-
-
-- (void)mouseDown:(NSEvent *)evt {
-    if ([evt clickCount] > 1) {
-        [[FUBookmarkWindowController instance] showWindow:self];
-    } else {
-        [super mouseDown:evt];
-    }
-}
-
-
-- (void)rightMouseDown:(NSEvent *)evt {
-    [super rightMouseDown:evt];
 }
 
 
@@ -128,43 +113,41 @@
 #pragma mark -
 #pragma mark Notifications
 
-//- (void)windowDidBecomeMain:(NSNotification *)n {
-//    [self setNeedsDisplay:YES];
-//}
-//
-//
-//- (void)windowDidResignMain:(NSNotification *)n {
-//    [self setNeedsDisplay:YES];
-//}
+- (void)windowDidBecomeMain:(NSNotification *)n {
+    [self setNeedsDisplay:YES];
+}
+
+
+- (void)windowDidResignMain:(NSNotification *)n {
+    [self setNeedsDisplay:YES];
+}
 
 
 #pragma mark -
 #pragma mark Public
 
-- (void)addButtonForBookmark:(FUBookmark *)bmark {
-    [self addButtonForBookmark:bmark atIndex:-1];
+- (void)addItem:(id)item {
+    [self addButtonForItem:item atIndex:-1];
+    [self addItem:item atIndex:-1];
+}
+
+
+- (void)addButtonForItem:(id)item {
+    [self addButtonForItem:item atIndex:-1];
 }
 
 
 - (void)startedDraggingButton:(FUBookmarkBarButton *)button {
-    NSParameterAssert([buttons containsObject:button]);
-
     [self setNeedsDisplay:YES];
     self.draggingButton = button;
-    draggingExistingButton = YES;
-
-    [[FUBookmarkController instance] removeBookmark:[draggingButton bookmark]];
-    [buttons removeObject:draggingButton];
-    [draggingButton setHidden:YES];
-}
-
-
-- (void)finishedDraggingButton {
-    NSParameterAssert(draggingButton);
-    self.draggingButton = nil;
-    [self postBookmarksDidChangeNotification];
-    [self layoutButtons];
-    draggingExistingButton = NO;
+    if (draggingButton) {
+        [[FUBookmarkController instance] removeBookmark:[draggingButton item]];
+        [buttons removeObject:draggingButton];
+        [draggingButton setHidden:YES];
+    } else {
+        [self postBookmarksChangedNotification];
+        [self layoutButtons];
+    }
 }
 
 
@@ -189,7 +172,7 @@
     
     BOOL canHandle = NO;
     
-    if ([pboard hasURLs]) {
+    if ([[pboard types] containsObject:WebURLsWithTitlesPboardType] || [[pboard types] containsObject:NSURLPboardType]) {
         canHandle = YES;
         op = NSDragOperationMove|NSDragOperationCopy;
     } 
@@ -207,18 +190,54 @@
     [separator removeFromSuperview];
 
     NSPasteboard *pboard = [draggingInfo draggingPasteboard];
+    
+    BOOL hasWebURLs = (NSNotFound != [[pboard types] indexOfObject:WebURLsWithTitlesPboardType]);
+    BOOL hasURLs = (NSNotFound != [[pboard types] indexOfObject:NSURLPboardType]);
+    
     BOOL result = NO;
     
     // TODO this line should not be necessary
     currDropIndex = (currDropIndex > [buttons count]) ? [buttons count] : currDropIndex;
+    if (hasWebURLs) {
+        NSArray *URLs = [WebURLsWithTitles URLsFromPasteboard:pboard];
+        NSArray *titles = [WebURLsWithTitles titlesFromPasteboard:pboard];
+        
+        NSString *title = nil;
+        for (NSURL *URL in URLs) {
+            title = [titles objectAtIndex:0];
+            FUBookmark *item = [[[FUBookmark alloc] init] autorelease];
+            item.title = title;
+            item.content = [URL absoluteString];
+            
+            [self addItem:item atIndex:currDropIndex];
+            result = YES;
+        }
+        
+    } else if (hasURLs) {
+        NSArray *URLs = [pboard propertyListForType:NSURLPboardType];
+        
+        for (NSString *URL in URLs) {
+            if ([URL length]) {
+                NSString *title = URL;
+                
+                title = [title FU_stringByTrimmingURLSchemePrefix];
+                NSString *prefix = @"www.";
+                if ([title hasPrefix:prefix]) title = [title substringFromIndex:[prefix length]];
 
-    NSArray *bmarks = [FUBookmark bookmarksFromPasteboard:pboard];
-    
-    for (FUBookmark *bmark in bmarks) {
-        [self addBookmark:bmark atIndex:currDropIndex];
+                NSString *suffix = @"/";
+                if ([title hasSuffix:suffix]) title = [title substringWithRange:NSMakeRange(0, [title length] - [suffix length])];
+                
+                FUBookmark *item = [[[FUBookmark alloc] init] autorelease];
+                item.content = URL;
+                item.title = title;
+                
+                [self addItem:item atIndex:currDropIndex];
+            }
+        }
+        
         result = YES;
-    }
-
+    } 
+    
     [self setNeedsDisplay:YES];
     return result;
 }
@@ -235,8 +254,8 @@
 #pragma mark -
 #pragma mark Private
 
-- (NSButton *)newButtonWithBookmark:(FUBookmark *)bmark {
-    NSButton *button = [[FUBookmarkBarButton alloc] initWithBookmarkBar:self bookmark:bmark];
+- (NSButton *)newButtonWithItem:(id)item {
+    NSButton *button = [[FUBookmarkBarButton alloc] initWithBookmarkBar:self item:item];
     [button setTarget:self];
     [button setAction:@selector(performActionForButton:)];
     [button sizeToFit];
@@ -319,24 +338,19 @@
 }
 
 
-- (void)addBookmark:(FUBookmark *)bmark atIndex:(NSInteger)i {                  
+- (void)addItem:(id)item atIndex:(NSInteger)i {
     if (-1 == i) {
-        [[FUBookmarkController instance] appendBookmark:bmark];
+        [[FUBookmarkController instance] appendBookmark:item];
     } else {
-        [[FUBookmarkController instance] insertBookmark:bmark atIndex:i];
+        [[FUBookmarkController instance] insertBookmark:item atIndex:i];
     }
-    [self addButtonForBookmark:bmark atIndex:i];
-    
-    [self postBookmarksDidChangeNotification];
-
-    if (!draggingExistingButton) {
-        [[[FUDocumentController instance] frontWindowController] runEditTitleSheetForBookmark:bmark];
-    }
+    [self addButtonForItem:item atIndex:i];
+    [self postBookmarksChangedNotification];
 }
 
 
-- (void)addButtonForBookmark:(FUBookmark *)bmark atIndex:(NSInteger)i {
-    NSButton *button = [self newButtonWithBookmark:bmark];
+- (void)addButtonForItem:(id)item atIndex:(NSInteger)i {
+    NSButton *button = [self newButtonWithItem:item];
     
     if (-1 == i) {
         [buttons addObject:button];
@@ -407,10 +421,11 @@
 }
 
 
-- (void)bookmarksDidChange:(NSNotification *)n {
+- (void)bookmarksChanged:(NSNotification *)n {
     [self removeAllButtons];
-    for (FUBookmark *bmark in [[FUBookmarkController instance] bookmarks]) {
-        [self addButtonForBookmark:bmark];
+    NSArray *items = [[FUBookmarkController instance] bookmarks];
+    for (id item in items) {
+        [self addButtonForItem:item];
     }
 }
 
@@ -424,8 +439,8 @@
 }
 
 
-- (void)postBookmarksDidChangeNotification {
-    [[NSNotificationCenter defaultCenter] postNotificationName:FUBookmarksDidChangeNotification object:nil];
+- (void)postBookmarksChangedNotification {
+    [[NSNotificationCenter defaultCenter] postNotificationName:FUBookmarksChangedNotification object:nil];
 }
 
 @synthesize separator;

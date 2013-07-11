@@ -14,27 +14,24 @@
 
 #import "FUBookmarkController.h"
 #import "FUBookmark.h"
-#import "FUBookmarkWindowController.h"
 #import "FUApplication.h"
-#import "FUDocumentController.h"
-#import "FUUserDefaults.h"
 #import "FUWindowController.h" // needed for bookmarkClicked: action
-#import "FUUtils.h"
-#import "FUNotifications.h"
-#import "WebIconDatabase.h"
+#import "WebKitPrivate.h"
 #import "WebIconDatabase+FUAdditions.h"
 
 #define NUM_STATIC_ITEMS 3
 
+NSString *const FUBookmarksChangedNotification = @"FUBookmarksChangedNotification";
+
 @interface FUBookmarkController ()
 - (void)setUpBookmarkMenu;
 - (void)setUpBookmarks;
-- (void)postBookmarksDidChangeNotification;
+- (void)postBookmarksChangedNotification;
 @end
 
 @implementation FUBookmarkController
 
-+ (FUBookmarkController *)instance {    
++ (id)instance {    
     static FUBookmarkController *instance = nil;
     @synchronized (self) {
         if (!instance) {
@@ -55,48 +52,8 @@
 
 
 - (void)dealloc {
-    [NSObject cancelPreviousPerformRequestsWithTarget:self];
     self.bookmarks = nil;
     [super dealloc];
-}
-
-
-#pragma mark -
-#pragma mark Action
-
-- (IBAction)openBookmarkInNewWindow:(id)sender {
-    FUBookmark *bmark = [sender representedObject];
-    [[FUDocumentController instance] loadURL:bmark.content destinationType:FUDestinationTypeWindow];
-}
-
-
-- (IBAction)openBookmarkInNewTab:(id)sender {
-    FUBookmark *bmark = [sender representedObject];
-    [[FUDocumentController instance] loadURL:bmark.content destinationType:FUDestinationTypeTab];
-}
-
-
-- (IBAction)copyBookmark:(id)sender {
-    FUBookmark *bmark = [sender representedObject];
-    [bmark writeAllToPasteboard:nil];
-}
-
-
-- (IBAction)deleteBookmark:(id)sender {
-    FUBookmark *bmark = [sender representedObject];
-    [self removeBookmark:bmark];
-}
-
-
-- (IBAction)editBookmarkTitle:(id)sender {
-    FUBookmark *bmark = [sender representedObject];
-    [[[FUDocumentController instance] frontWindowController] runEditTitleSheetForBookmark:bmark];
-}
-
-
-- (IBAction)editBookmarkContent:(id)sender {
-    FUBookmark *bmark = [sender representedObject];
-    [[FUBookmarkWindowController instance] beginEditingContentForBookmarkAtIndex:[bookmarks indexOfObject:bmark]];
 }
 
 
@@ -105,96 +62,26 @@
 
 - (void)save {
     if (![NSKeyedArchiver archiveRootObject:bookmarks toFile:[[FUApplication instance] bookmarksFilePath]]) {
-        NSLog(@"%@ could not write bookmarks to disk", [[FUApplication instance] appName]);
+        NSLog(@"Fluidium.app could not write bookmarks to disk");
     }
 }
 
 
-- (void)appendBookmark:(FUBookmark *)bmark {
-    [bookmarks addObject:bmark];
-    [self performSelector:@selector(postBookmarksDidChangeNotification) withObject:nil afterDelay:0];
+- (void)appendBookmark:(FUBookmark *)b {
+    [bookmarks addObject:b];
+    [self performSelector:@selector(postBookmarksChangedNotification) withObject:nil afterDelay:0];
 }
 
 
-- (void)insertBookmark:(FUBookmark *)bmark atIndex:(NSInteger)i {
-    [bookmarks insertObject:bmark atIndex:i];
-    [self performSelector:@selector(postBookmarksDidChangeNotification) withObject:nil afterDelay:0];
+- (void)insertBookmark:(FUBookmark *)b atIndex:(NSInteger)i {
+    [bookmarks insertObject:b atIndex:i];
+    [self performSelector:@selector(postBookmarksChangedNotification) withObject:nil afterDelay:0];
 }
 
 
-- (void)removeBookmark:(FUBookmark *)bmark {
-    [bookmarks removeObject:bmark];
-    [self performSelector:@selector(postBookmarksDidChangeNotification) withObject:nil afterDelay:0];
-}
-
-
-- (NSMenu *)contextMenuForBookmark:(FUBookmark *)bmark {
-    NSMenu *menu = [[[NSMenu alloc] initWithTitle:@""] autorelease];
-    
-    NSMenuItem *item = nil;
-    if ([[FUUserDefaults instance] tabbedBrowsingEnabled]) {
-        item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Open in New Tab", @"")
-                                           action:@selector(openBookmarkInNewTab:) 
-                                    keyEquivalent:@""] autorelease];
-        [item setTarget:self];
-        [item setRepresentedObject:bmark];
-        [item setOnStateImage:nil];
-        [menu addItem:item];
-    }
-    
-    item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Open in New Window", @"")
-                                       action:@selector(openBookmarkInNewWindow:) 
-                                keyEquivalent:@""] autorelease];
-    [item setTarget:self];
-    [item setRepresentedObject:bmark];
-    [item setOnStateImage:nil];
-    [menu addItem:item];
-    
-    item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Open", @"")
-                                       action:@selector(bookmarkClicked:) 
-                                keyEquivalent:@""] autorelease];
-    [item setTarget:nil];
-    [item setRepresentedObject:bmark];
-    [item setOnStateImage:nil];
-    [menu addItem:item];
-    
-    [menu addItem:[NSMenuItem separatorItem]];
-
-    item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Edit Name", @"")
-                                       action:@selector(editBookmarkTitle:) 
-                                keyEquivalent:@""] autorelease];
-    [item setTarget:self];
-    [item setRepresentedObject:bmark];
-    [item setOnStateImage:nil];
-    [menu addItem:item];
-    
-    item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Edit Address", @"")
-                                       action:@selector(editBookmarkContent:) 
-                                keyEquivalent:@""] autorelease];
-    [item setTarget:self];
-    [item setRepresentedObject:bmark];
-    [item setOnStateImage:nil];
-    [menu addItem:item];
-    
-    [menu addItem:[NSMenuItem separatorItem]];
-
-    item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Copy", @"")
-                                       action:@selector(copyBookmark:) 
-                                keyEquivalent:@""] autorelease];
-    [item setTarget:self];
-    [item setRepresentedObject:bmark];
-    [item setOnStateImage:nil];
-    [menu addItem:item];
-
-    item = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Delete", @"")
-                                       action:@selector(deleteBookmark:) 
-                                keyEquivalent:@""] autorelease];
-    [item setTarget:self];
-    [item setRepresentedObject:bmark];
-    [item setOnStateImage:nil];
-    [menu addItem:item];
-    
-    return menu;
+- (void)removeBookmark:(FUBookmark *)b {
+    [bookmarks removeObject:b];
+    [self performSelector:@selector(postBookmarksChangedNotification) withObject:nil afterDelay:0];
 }
 
 
@@ -217,7 +104,7 @@
         @try {
             self.bookmarks = [NSKeyedUnarchiver unarchiveObjectWithFile:path];
         } @catch (NSException *e) {
-            NSLog(@"%@ encountered error reading bookmarks on disk!\n%@", [[FUApplication instance] appName], [e reason]);
+            NSLog(@"Fluidium.app encountered error reading bookmarks on disk!\n%@", [e reason]);
         }
     }
     
@@ -227,9 +114,9 @@
 }
 
 
-- (void)postBookmarksDidChangeNotification {
+- (void)postBookmarksChangedNotification {
     [self save];
-    [[NSNotificationCenter defaultCenter] postNotificationName:FUBookmarksDidChangeNotification object:nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:FUBookmarksChangedNotification object:nil];
 }
 
 
@@ -241,20 +128,20 @@
 }
 
 
-- (BOOL)menu:(NSMenu *)menu updateItem:(NSMenuItem *)item atIndex:(NSInteger)i shouldCancel:(BOOL)shouldCancel {
-    if (i < NUM_STATIC_ITEMS) {
+- (BOOL)menu:(NSMenu *)menu updateItem:(NSMenuItem *)item atIndex:(NSInteger)index shouldCancel:(BOOL)shouldCancel {
+    if (index < NUM_STATIC_ITEMS) {
         return YES;
     }
     
-    i -= NUM_STATIC_ITEMS;
+    index -= NUM_STATIC_ITEMS;
     
-    FUBookmark *bmark = [bookmarks objectAtIndex:i];
+    FUBookmark *bookmark = [bookmarks objectAtIndex:index];
     
     [item setAction:@selector(bookmarkClicked:)];
-    [item setTitle:bmark.title];
+    [item setTitle:bookmark.title];
     
-    [item setImage:[[WebIconDatabase sharedIconDatabase] faviconForURL:bmark.content]];
-    [item setRepresentedObject:bmark];
+    [item setImage:[[WebIconDatabase sharedIconDatabase] FU_faviconForURL:bookmark.content]];
+    [item setRepresentedObject:bookmark];
     
     return YES;
 }

@@ -16,23 +16,15 @@
 #import "FUBookmarkBar.h"
 #import "FUBookmark.h"
 #import "FUBookmarkBarButtonCell.h"
-#import "FUBookmarkController.h"
-#import "FUUserDefaults.h"
-#import "WebIconDatabase.h"
+#import "WebKitPrivate.h"
 #import "WebIconDatabase+FUAdditions.h"
+#import "WebURLsWithTitles.h"
 #import <WebKit/WebKit.h>
 
 #define ICON_SIDE 16
 
 @interface NSToolbarPoofAnimator
 + (void)runPoofAtPoint:(NSPoint)p;
-@end
-
-@interface FUBookmarkBarButton ()
-- (void)killTimer;
-- (void)displayMenu:(NSTimer *)t;
-
-@property (nonatomic, retain) NSTimer *timer;
 @end
 
 @implementation FUBookmarkBarButton
@@ -42,17 +34,15 @@
 }
 
 
-- (id)initWithBookmarkBar:(FUBookmarkBar *)bar bookmark:(FUBookmark *)bmark {
+- (id)initWithBookmarkBar:(FUBookmarkBar *)bar item:(id)anItem {
     if (self = [super init]) {
         self.bookmarkBar = bar;
-        self.bookmark = bmark;
-
-        if ([[FUUserDefaults instance] bookmarkBarShowsFavicons]) {
-            [self setImagePosition:NSImageLeft];
-            [self setImage:[[WebIconDatabase sharedIconDatabase] faviconForURL:bookmark.content]];
-        }
-        
-        [self setTitle:bookmark.title];
+        self.item = anItem;
+        //if ([[FUUserDefaults instance] showIconsInBookmarkBar]) {
+        //    [self setImagePosition:NSImageLeft];
+        //    [self setImage:[[WebIconDatabase sharedIconDatabase] FU_faviconForURL:item.content]];
+        //}
+        [self setTitle:[item valueForKey:@"title"]];
         [self setBezelStyle:NSRecessedBezelStyle];
         [self setShowsBorderOnlyWhileMouseInside:YES];
     }
@@ -62,22 +52,10 @@
 
 - (void)dealloc {
     self.bookmarkBar = nil;
-    self.bookmark = nil;
-    [self killTimer];
+    self.item = nil;
     [super dealloc];
 }
 
-
-- (void)killTimer {
-    if (timer) {
-        [timer invalidate];
-        self.timer = nil;
-    }
-}
-
-
-#pragma mark -
-#pragma mark Left Click
 
 - (void)mouseDown:(NSEvent *)evt {
     [[self cell] setHighlighted:YES];
@@ -113,10 +91,15 @@
 - (void)mouseDragged:(NSEvent *)evt {    
     [bookmarkBar startedDraggingButton:self];
 
+    NSArray *types = [NSArray arrayWithObject:WebURLsWithTitlesPboardType];
     NSPasteboard *pboard = [NSPasteboard pasteboardWithName:NSDragPboard];
-    [bookmark writeWebURLsToPasteboard:pboard];
+    [pboard declareTypes:types owner:nil];
     
-    NSImage *dragImage = [[WebIconDatabase sharedIconDatabase] defaultFavicon];
+    [WebURLsWithTitles writeURLs:[NSArray arrayWithObject:[NSURL URLWithString:item.content]]
+                       andTitles:[NSArray arrayWithObject:item.title]
+                    toPasteboard:pboard];
+        
+    NSImage *dragImage = [[WebIconDatabase sharedIconDatabase] FU_defaultFavicon];
     NSPoint dragPosition = [self convertPoint:[evt locationInWindow] fromView:nil];
 
     CGFloat delta = ICON_SIDE / 2;
@@ -143,54 +126,21 @@
     CGFloat delta = ICON_SIDE / 2;
     p.x += delta;
     p.y += delta;
+    NSRect frame = [bookmarkBar frame];
 
-    if (!NSPointInRect(p, [bookmarkBar frame])) {
+    // had to add this when i manually implemented a toolbar. dunno why.
+    frame.origin.y += 18;
+    //frame.origin.y += 23;
+    
+    if (!NSPointInRect(p, frame)) {
         endPoint.x += delta;
         endPoint.y += delta;
         [NSToolbarPoofAnimator runPoofAtPoint:endPoint];
     }
-
-    [bookmarkBar finishedDraggingButton];
-}
-
-
-#pragma mark -
-#pragma mark Right Click
-
-- (void)rightMouseDown:(NSEvent *)evt { 
-    [self highlight:NO];
-    [self setImage:[NSImage imageNamed:@"OverflowButtonPressed"]];
-    
-    self.timer = [NSTimer timerWithTimeInterval:0 
-                                         target:self 
-                                       selector:@selector(displayMenu:) 
-                                       userInfo:evt 
-                                        repeats:NO];
-    
-    [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
-} 
-
-
-- (void)displayMenu:(NSTimer *)t {
-    NSEvent *evt = [timer userInfo];
-    
-    NSEvent *click = [NSEvent mouseEventWithType:[evt type] 
-                                        location:[evt locationInWindow]
-                                   modifierFlags:[evt modifierFlags] 
-                                       timestamp:[evt timestamp] 
-                                    windowNumber:[evt windowNumber] 
-                                         context:[evt context]
-                                     eventNumber:[evt eventNumber] 
-                                      clickCount:[evt clickCount] 
-                                        pressure:[evt pressure]]; 
-    
-    NSMenu *menu = [[FUBookmarkController instance] contextMenuForBookmark:bookmark];
-    [NSMenu popUpContextMenu:menu withEvent:click forView:self];
-    [self killTimer];
+    [bookmarkBar startedDraggingButton:nil];
 }
 
 @synthesize hovered;
 @synthesize bookmarkBar;
-@synthesize bookmark;
-@synthesize timer;
+@synthesize item;
 @end

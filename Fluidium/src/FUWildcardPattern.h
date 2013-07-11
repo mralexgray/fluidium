@@ -4,7 +4,7 @@
  */
 
 #import <Cocoa/Cocoa.h>
-#import <regex.h>
+#include <regex.h>
 
 @interface FUWildcardPattern : NSObject {
     NSString *string;

@@ -31,7 +31,7 @@
 
 @implementation FUHistoryController
 
-+ (FUHistoryController *)instance {
++ (id)instance {
     static FUHistoryController *instance = nil;
     @synchronized (self) {
         if (!instance) {
@@ -65,32 +65,28 @@
     WebHistoryItem *historyItem = [sender representedObject];
     
     FUDocumentController *dc = [FUDocumentController instance];
-    FUTabController *tc = [dc frontTabController];
+    WebView *webView = [dc frontWebView];
     
-    if (!tc) {
+    if (!webView) {
         [dc newDocument:self];
-        tc = [dc frontTabController];
+        webView = [dc frontWebView];
     }
     
-    [tc loadURL:[historyItem URLString]];
+    [webView setMainFrameURL:[historyItem URLString]];
 }
 
 
 #pragma mark -
-#pragma mark Public
 
 - (void)save {
     NSError *err = nil;
     [[WebHistory optionalSharedHistory] saveToURL:[NSURL fileURLWithPath:webHistoryFilePath] error:&err];
     
     if (err) {
-        NSLog(@"%@ could not write history to disk", [[FUApplication instance] appName]);
+        NSLog(@"Fluidium.app could not write history to disk");
     }
 }
 
-
-#pragma mark -
-#pragma mark Private
 
 - (void)setUpHistoryMenu {
     NSMenu *historyMenu = [[[NSApp mainMenu] itemWithTitle:NSLocalizedString(@"History", @"")] submenu];
@@ -113,7 +109,7 @@
             NSError *err = nil;
             [history loadFromURL:[NSURL fileURLWithPath:path] error:&err];
             if (err) {
-                NSLog(@"%@ encountered error reading webhistory on disk!", [[FUApplication instance] appName]);
+                NSLog(@"Fluidium.app encountered error reading webhistory on disk!");
                 history = [[[WebHistory alloc] init] autorelease];
             }
         }

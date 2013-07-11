@@ -29,7 +29,7 @@
 
 @implementation FUDownloadWindowController
 
-+ (FUDownloadWindowController *)instance {
++ (id)instance {
     static FUDownloadWindowController *instance = nil;
     @synchronized (self) {
         if (!instance) {
@@ -49,7 +49,6 @@
 
 
 - (void)dealloc {
-    [NSObject cancelPreviousPerformRequestsWithTarget:self];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 
     self.collectionView = nil;
@@ -59,7 +58,7 @@
     self.labelTextField = nil;
     self.downloadItems = nil;
     self.indexForURLDownloadTable = nil;
-    self.nextDestinationDirectory = nil;
+    self.nextDestinationDirPath = nil;
     self.nextDestinationFilename = nil;
     [super dealloc];
 }
@@ -167,17 +166,9 @@
 - (void)save {
     if ([downloadItems count]) {
         if (![NSKeyedArchiver archiveRootObject:downloadItems toFile:[[FUApplication instance] downloadArchiveFilePath]]) {
-            NSLog(@"%@ could not write download archive to disk", [[FUApplication instance] appName]);
+            NSLog(@"Fluidium.app could not write download archive to disk");
         }
     }
-}
-
-
-- (void)downloadRequest:(NSURLRequest *)req directory:(NSString *)dirPath filename:(NSString *)filename {
-    [self setNextDestinationDirectory:dirPath];
-    [self setNextDestinationFilename:filename];
-    
-    [[[NSURLDownload alloc] initWithRequest:req delegate:self] autorelease]; // start    
 }
 
 
@@ -220,7 +211,7 @@
 }
 
 
-- (FUDownloadItem *)downloadItemForButton:(id)sender {    
+- (FUDownloadItem *)downloadItemForButton:(id)sender {
     return [[arrayController content] objectAtIndex:[self indexForButton:sender]];
 }
 
@@ -260,7 +251,6 @@
     item.done = NO;
     
     [self performSelector:@selector(scrollToBottom) withObject:nil afterDelay:.8];
-    [self save];
 }
 
 
@@ -299,11 +289,11 @@
     BOOL isUserscript = NO;
     NSString *dirPath = nil;
     NSString *path = nil;
-    if (nextDestinationDirectory && nextDestinationFilename) {
-        dirPath = [[nextDestinationDirectory copy] autorelease];
+    if (nextDestinationDirPath && nextDestinationFilename) {
+        dirPath = [[nextDestinationDirPath copy] autorelease];
         filename = [[nextDestinationFilename copy] autorelease];
         path = [dirPath stringByAppendingPathComponent:filename];
-        self.nextDestinationDirectory = nil;
+        self.nextDestinationDirPath = nil;
         self.nextDestinationFilename = nil;
     } else {
         if (isUserscript) {
@@ -363,7 +353,7 @@
 @synthesize downloadItems;
 @synthesize indexForURLDownloadTable;
 @synthesize numberOfDownloadItems;
-@synthesize nextDestinationDirectory;
+@synthesize nextDestinationDirPath;
 @synthesize nextDestinationFilename;
 @end
     

@@ -18,23 +18,26 @@
 #import "FUWebView.h"
 #import "FUApplication.h"
 #import "FUWildcardPattern.h"
-#import "FUUtils.h"
-#import "FUNotifications.h"
 #import <WebKit/WebKit.h>
 
 #define KEY_USERSCRIPT_SRC @"userscriptSrc"
 #define KEY_TABCONTROLLER @"tabController"
+#define KEY_COUNT @"count"
+
+#define MAX_TRIES 5
+
+#define IS_JS_UNDEF(obj) ([(obj) isKindOfClass:[WebUndefined class]])
 
 @interface FUUserscriptController ()
 - (void)loadUserscripts;
 - (NSString *)userscriptSourceForURLString:(NSString *)URLString;
-- (void)executeUserscriptLater:(NSMutableDictionary *)args;
+- (void)tryToExecuteUserscript:(NSMutableDictionary *)args;
 - (void)executeUserscript:(NSString *)userscriptSrc inWebView:(WebView *)wv;
 @end
 
 @implementation FUUserscriptController
 
-+ (FUUserscriptController *)instance {
++ (id)instance {
     static FUUserscriptController *instance = nil;
     @synchronized (self) {
         if (!instance) {
@@ -49,15 +52,13 @@
     if (self = [super init]) {
         [self loadUserscripts];
         
-        NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
-        [nc addObserver:self selector:@selector(tabControllerDidLoadDOMContent:) name:FUTabControllerDidLoadDOMContentNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tabControllerDidClearWindowObject:) name:FUTabControllerDidClearWindowObjectNotification object:nil];
     }
     return self;
 }
 
 
 - (void)dealloc {
-    [NSObject cancelPreviousPerformRequestsWithTarget:self];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 
     self.userscripts = nil;
@@ -79,8 +80,8 @@
 #pragma mark -
 #pragma mark Notifications
 
-- (void)tabControllerDidLoadDOMContent:(NSNotification *)n {
-    FUTabController *tc = [n object];
+- (void)tabControllerDidClearWindowObject:(NSNotification *)n {
+    FUTabController *tc = [[n userInfo] objectForKey:FUTabControllerKey];
     WebView *wv = [tc webView];
     NSString *userscriptSrc = [self userscriptSourceForURLString:[wv mainFrameURL]];
     
@@ -88,12 +89,20 @@
         return;
     }
     
+    // don't use a format string. this is safer
+    NSMutableString *ms = [NSMutableString stringWithString:@"(function (document) {\n"];
+    [ms appendString:userscriptSrc];
+    [ms appendString:@"\n});"];
+    
+    userscriptSrc = [[ms copy] autorelease];
+    
     NSMutableDictionary *args = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                                  userscriptSrc, KEY_USERSCRIPT_SRC,
                                  [n object], KEY_TABCONTROLLER,
+                                 [NSNumber numberWithInteger:0], KEY_COUNT,
                                  nil];
 
-    [self performSelector:@selector(executeUserscriptLater:) withObject:args afterDelay:0];
+    [self performSelector:@selector(tryToExecuteUserscript:) withObject:args afterDelay:0];
 }
 
 
@@ -143,24 +152,35 @@ static NSInteger FUSortMatchedUserscripts(NSDictionary *a, NSDictionary *b, void
 }
 
 
-- (void)executeUserscriptLater:(NSMutableDictionary *)args {
+- (void)tryToExecuteUserscript:(NSMutableDictionary *)args {
     WebView *wv = [[args objectForKey:KEY_TABCONTROLLER] webView];
-    NSMutableString *script = [NSMutableString string];
-    [script appendString:@"(function() {\n\treturn function() {\n\t\t"];
-    [script appendString:[args objectForKey:KEY_USERSCRIPT_SRC]];
-    [script appendString:@"\n\t}\n})();\n"];
-    [self executeUserscript:script inWebView:wv];
+    
+    NSString *readyState = [[wv mainFrameDocument] valueForKey:@"readyState"];
+    if ([readyState isEqualToString:@"loaded"] || [readyState isEqualToString:@"complete"]) {
+
+        [self executeUserscript:[args objectForKey:KEY_USERSCRIPT_SRC] inWebView:wv];
+
+    } else {
+        NSInteger count = [[args objectForKey:KEY_COUNT] integerValue];
+        //NSLog(@"tried %d times to run userscript for URL: %@", count, [wv mainFrameURL]);
+        if (count < MAX_TRIES) {
+            [args setObject:[NSNumber numberWithInteger:++count] forKey:KEY_COUNT];
+            [self performSelector:@selector(tryToExecuteUserscript:) withObject:args afterDelay:0.3];
+        } else {
+            NSLog(@"maxed out trying to run userscript for URL: %@", [wv mainFrameURL]);
+        }
+    }
 }
 
 
 - (void)executeUserscript:(NSString *)userscriptSrc inWebView:(WebView *)wv {
     WebScriptObject *func = [[wv windowScriptObject] evaluateWebScript:userscriptSrc];
-    if (!func || FUIsWebUndefined(func)) {
+    if (!func || IS_JS_UNDEF(func)) {
         return;
     }
     
     WebScriptObject *jsThis = [func evaluateWebScript:@"this"];
-    if (!jsThis || FUIsWebUndefined(jsThis)) {
+    if (!jsThis || IS_JS_UNDEF(jsThis)) {
         return;
     } else {
         DOMDocument *doc = [wv mainFrameDocument];

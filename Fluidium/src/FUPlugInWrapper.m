@@ -17,31 +17,26 @@
 #import "FUDocumentController.h"
 #import "FUWindowController.h"
 #import "FUTabController.h"
-#import "FUNotifications.h"
-#import <TDAppKit/TDUberView.h>
-
-@interface FUPlugIn ()
-@property (nonatomic, readwrite, retain) NSArray *viewControllers;
-@end
 
 @interface FUPlugInWrapper ()
-@property (nonatomic, retain, readwrite) FUPlugIn *plugIn;
-@property (nonatomic, copy, readwrite) NSString *viewPlacementMaskKey;
+@property (nonatomic, retain, readwrite) id <FUPlugIn>plugIn;
+@property (nonatomic, copy, readwrite) NSString *currentViewPlacementMaskKey;
 @property (nonatomic, retain) NSMutableSet *visibleWindowNumbers;
 @end
 
 @implementation FUPlugInWrapper
 
-- (id)initWithPlugIn:(FUPlugIn *)aPlugIn {
-    if (self = [super init]) {
+- (id)initWithPlugIn:(id <FUPlugIn>)aPlugIn {
+    self = [super init];
+    if (self != nil) {
         self.plugIn = aPlugIn;
-        self.viewControllerDict = [NSMutableDictionary dictionary];
+        self.viewControllers = [NSMutableDictionary dictionary];
         self.visibleWindowNumbers = [NSMutableSet set];
-        self.viewPlacementMaskKey = [NSString stringWithFormat:@"%@-currentViewPlacement", self.identifier];
+        self.currentViewPlacementMaskKey = [NSString stringWithFormat:@"%@-currentViewPlacement", self.identifier];
         
-        id existingValue = [[NSUserDefaults standardUserDefaults] objectForKey:self.viewPlacementMaskKey];
+        id existingValue = [[NSUserDefaults standardUserDefaults] objectForKey:self.currentViewPlacementMaskKey];
         if (!existingValue) {
-            self.viewPlacementMask = self.preferredViewPlacement;
+            self.currentViewPlacementMask = self.preferredViewPlacementMask;
         }
     }
     return self;
@@ -53,20 +48,10 @@
     [[NSNotificationCenter defaultCenter] removeObserver:plugIn];
 
     self.plugIn = nil;
-    self.viewControllerDict = nil;
+    self.viewControllers = nil;
     self.visibleWindowNumbers = nil;
-    self.viewPlacementMaskKey = nil;
+    self.currentViewPlacementMaskKey = nil;
     [super dealloc];
-}
-
-
-- (NSString *)description {
-    return [NSString stringWithFormat:@"<FUPlugInWrapper %p %@>", self, [plugIn identifier]];
-}
-
-
-- (id)representedObject {
-    return [plugIn identifier];
 }
 
 
@@ -88,7 +73,7 @@
 
 - (NSViewController *)plugInViewControllerForWindowNumber:(NSInteger)num {
     NSString *key = [[NSNumber numberWithInteger:num] stringValue];
-    NSViewController *viewController = [viewControllerDict objectForKey:key];
+    NSViewController *viewController = [viewControllers objectForKey:key];
     if (!viewController) {
         viewController = [[self newViewControllerForWindowNumber:num] autorelease];
     }
@@ -106,13 +91,7 @@
 
 - (NSViewController *)newViewControllerForWindowNumber:(NSInteger)num {
     NSViewController *vc = [plugIn newPlugInViewController];
-    
-    // add the view controller to the plugins viewControllers array (which should be immutable when done)
-    NSMutableArray *allVcs = [NSMutableArray arrayWithArray:plugIn.viewControllers];
-    [allVcs addObject:vc];
-    plugIn.viewControllers = [[allVcs copy] autorelease];
-    
-    [viewControllerDict setObject:vc forKey:[[NSNumber numberWithInteger:num] stringValue]];
+    [viewControllers setObject:vc forKey:[[NSNumber numberWithInteger:num] stringValue]];
     
     [self addObserver:plugIn for:FUPlugInViewControllerWillAppearNotifcation object:vc ifRespondsTo:@selector(plugInViewControllerWillAppear:)];
     [self addObserver:plugIn for:FUPlugInViewControllerDidAppearNotifcation object:vc ifRespondsTo:@selector(plugInViewControllerDidAppear:)];
@@ -122,49 +101,41 @@
     [self addObserver:plugIn for:FUWindowControllerDidOpenNotification object:nil ifRespondsTo:@selector(windowControllerDidOpen:)];
 
     if (num > -1) {
-        NSWindow *win = [NSApp windowWithWindowNumber:num];
-        NSAssert([win windowNumber] == num, @"");
-        FUWindowController *wc = [win windowController];
+        FUWindowController *wc = [[FUDocumentController instance] frontWindowController];
+        NSWindow *window = [wc window];
 
-        [self addObserver:vc for:FUWindowControllerWillCloseNotification object:wc ifRespondsTo:@selector(windowControllerWillClose:)];
+        [self addObserver:vc for:FUWindowControllerWillCloseNotification object:nil ifRespondsTo:@selector(windowControllerWillClose:)];
 
-        [self addObserver:vc for:FUWindowControllerDidOpenTabNotification object:wc ifRespondsTo:@selector(windowControllerDidOpenTab:)];
-        [self addObserver:vc for:FUWindowControllerWillCloseTabNotification object:wc ifRespondsTo:@selector(windowControllerWillCloseTab:)];
-        [self addObserver:vc for:FUWindowControllerDidCloseTabNotification object:wc ifRespondsTo:@selector(windowControllerDidCloseTab:)];
-        [self addObserver:vc for:FUWindowControllerDidChangeSelectedTabNotification object:wc ifRespondsTo:@selector(windowControllerDidChangeSelectedTab:)];
-        [self addObserver:vc for:FUWindowControllerDidChangeTabOrderNotification object:wc ifRespondsTo:@selector(windowControllerDidChangeTabOrder:)];
+        [self addObserver:vc for:FUWindowControllerDidOpenTabNotification object:nil ifRespondsTo:@selector(windowControllerDidOpenTab:)];
+        [self addObserver:vc for:FUWindowControllerWillCloseTabNotification object:nil ifRespondsTo:@selector(windowControllerWillCloseTab:)];
+        [self addObserver:vc for:FUWindowControllerDidChangeSelectedTabNotification object:nil ifRespondsTo:@selector(windowControllerDidChangeSelectedTab:)];
+
+        [self addObserver:vc for:FUTabControllerProgressDidStartNotification object:nil ifRespondsTo:@selector(tabControllerProgressDidStart:)];
+        [self addObserver:vc for:FUTabControllerProgressDidChangeNotification object:nil ifRespondsTo:@selector(tabControllerProgressDidChange:)];
+        [self addObserver:vc for:FUTabControllerProgressDidFinishNotification object:nil ifRespondsTo:@selector(tabControllerProgressDidFinish:)];
+
+        [self addObserver:vc for:FUTabControllerDidCommitLoadNotification object:nil ifRespondsTo:@selector(tabControllerDidCommitLoad:)];
+        [self addObserver:vc for:FUTabControllerDidFinishLoadNotification object:nil ifRespondsTo:@selector(tabControllerDidFinishLoad:)];
+        [self addObserver:vc for:FUTabControllerDidFailLoadNotification object:nil ifRespondsTo:@selector(tabControllerDidFailLoad:)];
+        [self addObserver:vc for:FUTabControllerDidClearWindowObjectNotification object:nil ifRespondsTo:@selector(tabControllerDidClearWindowObject:)];
         
-        [self addObserver:vc for:NSWindowDidResizeNotification object:win ifRespondsTo:@selector(windowDidResize:)];
-        [self addObserver:vc for:NSWindowDidExposeNotification object:win ifRespondsTo:@selector(windowDidExpose:)];
-        [self addObserver:vc for:NSWindowWillMoveNotification object:win ifRespondsTo:@selector(windowWillMove:)];
-        [self addObserver:vc for:NSWindowDidMoveNotification object:win ifRespondsTo:@selector(windowDidMove:)];
-        [self addObserver:vc for:NSWindowDidBecomeKeyNotification object:win ifRespondsTo:@selector(windowDidBecomeKey:)];
-        [self addObserver:vc for:NSWindowDidResignKeyNotification object:win ifRespondsTo:@selector(windowDidResignKey:)];
-        [self addObserver:vc for:NSWindowDidBecomeMainNotification object:win ifRespondsTo:@selector(windowDidBecomeMain:)];
-        [self addObserver:vc for:NSWindowDidResignMainNotification object:win ifRespondsTo:@selector(windowDidResignMain:)];
-        [self addObserver:vc for:NSWindowWillCloseNotification object:win ifRespondsTo:@selector(windowWillClose:)];
-        [self addObserver:vc for:NSWindowWillMiniaturizeNotification object:win ifRespondsTo:@selector(windowWillMiniaturize:)];
-        [self addObserver:vc for:NSWindowDidMiniaturizeNotification object:win ifRespondsTo:@selector(windowDidMiniaturize:)];
-        [self addObserver:vc for:NSWindowDidDeminiaturizeNotification object:win ifRespondsTo:@selector(windowDidDeminiaturize:)];
-        [self addObserver:vc for:NSWindowDidUpdateNotification object:win ifRespondsTo:@selector(windowDidUpdate:)];
-        [self addObserver:vc for:NSWindowDidChangeScreenNotification object:win ifRespondsTo:@selector(windowDidChangeScreen:)];
-        [self addObserver:vc for:NSWindowDidChangeScreenProfileNotification object:win ifRespondsTo:@selector(windowDidChangeScreenProfile:)];
-        [self addObserver:vc for:NSWindowWillBeginSheetNotification object:win ifRespondsTo:@selector(windowWillBeginSheet:)];
-        [self addObserver:vc for:NSWindowDidEndSheetNotification object:win ifRespondsTo:@selector(windowDidEndSheet:)];
-        
-        NSDrawer *drawer = [[win drawers] objectAtIndex:0];
-        [self addObserver:vc for:NSDrawerWillOpenNotification object:drawer ifRespondsTo:@selector(drawerWillOpen:)];
-        [self addObserver:vc for:NSDrawerDidOpenNotification object:drawer ifRespondsTo:@selector(drawerDidOpen:)];
-        [self addObserver:vc for:NSDrawerWillCloseNotification object:drawer ifRespondsTo:@selector(drawerWillClose:)];
-        [self addObserver:vc for:NSDrawerDidCloseNotification object:drawer ifRespondsTo:@selector(drawerDidClose:)];
-
-        NSSplitView *sv = wc.uberView.verticalSplitView;
-        [self addObserver:vc for:NSSplitViewWillResizeSubviewsNotification object:sv ifRespondsTo:@selector(splitViewWillResizeSubviews:)];
-        [self addObserver:vc for:NSSplitViewDidResizeSubviewsNotification object:sv ifRespondsTo:@selector(splitViewDidResizeSubviews:)];
-
-        sv = wc.uberView.horizontalSplitView;
-        [self addObserver:vc for:NSSplitViewWillResizeSubviewsNotification object:sv ifRespondsTo:@selector(splitViewWillResizeSubviews:)];
-        [self addObserver:vc for:NSSplitViewDidResizeSubviewsNotification object:sv ifRespondsTo:@selector(splitViewDidResizeSubviews:)];
+        [self addObserver:vc for:NSWindowDidResizeNotification object:window ifRespondsTo:@selector(windowDidResize:)];
+        [self addObserver:vc for:NSWindowDidExposeNotification object:window ifRespondsTo:@selector(windowDidExpose:)];
+        [self addObserver:vc for:NSWindowWillMoveNotification object:window ifRespondsTo:@selector(windowWillMove:)];
+        [self addObserver:vc for:NSWindowDidMoveNotification object:window ifRespondsTo:@selector(windowDidMove:)];
+        [self addObserver:vc for:NSWindowDidBecomeKeyNotification object:window ifRespondsTo:@selector(windowDidBecomeKey:)];
+        [self addObserver:vc for:NSWindowDidResignKeyNotification object:window ifRespondsTo:@selector(windowDidResignKey:)];
+        [self addObserver:vc for:NSWindowDidBecomeMainNotification object:window ifRespondsTo:@selector(windowDidBecomeMain:)];
+        [self addObserver:vc for:NSWindowDidResignMainNotification object:window ifRespondsTo:@selector(windowDidResignMain:)];
+        [self addObserver:vc for:NSWindowWillCloseNotification object:window ifRespondsTo:@selector(windowWillClose:)];
+        [self addObserver:vc for:NSWindowWillMiniaturizeNotification object:window ifRespondsTo:@selector(windowWillMiniaturize:)];
+        [self addObserver:vc for:NSWindowDidMiniaturizeNotification object:window ifRespondsTo:@selector(windowDidMiniaturize:)];
+        [self addObserver:vc for:NSWindowDidDeminiaturizeNotification object:window ifRespondsTo:@selector(windowDidDeminiaturize:)];
+        [self addObserver:vc for:NSWindowDidUpdateNotification object:window ifRespondsTo:@selector(windowDidUpdate:)];
+        [self addObserver:vc for:NSWindowDidChangeScreenNotification object:window ifRespondsTo:@selector(windowDidChangeScreen:)];
+        [self addObserver:vc for:NSWindowDidChangeScreenProfileNotification object:window ifRespondsTo:@selector(windowDidChangeScreenProfile:)];
+        [self addObserver:vc for:NSWindowWillBeginSheetNotification object:window ifRespondsTo:@selector(windowWillBeginSheet:)];
+        [self addObserver:vc for:NSWindowDidEndSheetNotification object:window ifRespondsTo:@selector(windowDidEndSheet:)];
     }
     
     return vc;
@@ -176,28 +147,21 @@
     NSString *key = [[NSNumber numberWithInteger:[window windowNumber]] stringValue];
     [self setVisible:NO inWindowNumber:[window windowNumber]];
     
-    NSViewController *vc = [viewControllerDict objectForKey:key];
-    [viewControllerDict removeObjectForKey:key];
-    
-    // remove the view controller from the plugins viewController list
-    NSMutableArray *vcs = [NSMutableArray arrayWithArray:plugIn.viewControllers];
-    //NSAssert([vcs containsObject:vc], @""); // this sometimes fails. dunno why :|
-    [vcs removeObject:vc];
-    plugIn.viewControllers = [[vcs copy] autorelease];
-    
+    NSViewController *vc = [viewControllers objectForKey:key];
+    [viewControllers removeObjectForKey:key];
     [[NSNotificationCenter defaultCenter] removeObserver:vc];
 }
 
 #pragma mark -
 #pragma mark accessors
 
-- (NSUInteger)viewPlacementMask {
-    return [[NSUserDefaults standardUserDefaults] integerForKey:self.viewPlacementMaskKey];
+- (NSInteger)currentViewPlacementMask {
+    return [[NSUserDefaults standardUserDefaults] integerForKey:self.currentViewPlacementMaskKey];
 }
 
 
-- (void)setViewPlacementMask:(NSUInteger)mask {
-    [[NSUserDefaults standardUserDefaults] setInteger:mask forKey:self.viewPlacementMaskKey];
+- (void)setCurrentViewPlacementMask:(NSInteger)mask {
+    [[NSUserDefaults standardUserDefaults] setInteger:mask forKey:self.currentViewPlacementMaskKey];
 }
 
 
@@ -219,13 +183,13 @@
 }
 
 
-- (NSInteger)allowedViewPlacement {
-    return [plugIn allowedViewPlacement];
+- (NSInteger)allowedViewPlacementMask {
+    return [plugIn allowedViewPlacementMask];
 }
 
 
-- (NSInteger)preferredViewPlacement {
-    return [plugIn preferredViewPlacement];
+- (NSInteger)preferredViewPlacementMask {
+    return [plugIn preferredViewPlacementMask];
 }
 
 
@@ -234,8 +198,8 @@
 }
 
 
-- (NSUInteger)preferredMenuItemKeyEquivalentModifierFlags {
-    return [plugIn preferredMenuItemKeyEquivalentModifierFlags];
+- (NSUInteger)preferredMenuItemKeyEquivalentModifierMask {
+    return [plugIn preferredMenuItemKeyEquivalentModifierMask];
 }
 
 
@@ -260,31 +224,35 @@
 
 
 - (CGFloat)preferredHorizontalSplitPosition {
-    return [plugIn preferredHorizontalSplitPosition];
+    if ([plugIn respondsToSelector:@selector(preferredHorizontalSplitPosition)]) {
+        return [plugIn preferredHorizontalSplitPosition];
+    } else {
+        return 220.;
+    }
 }
 
 
 - (CGFloat)preferredVerticalSplitPosition {
-    return [plugIn preferredVerticalSplitPosition];
+    if ([plugIn respondsToSelector:@selector(preferredVerticalSplitPosition)]) {
+        return [plugIn preferredVerticalSplitPosition];
+    } else {
+        return 220.;
+    }
 }
 
 
-- (NSInteger)sortOrder {
-    return [plugIn sortOrder];
+- (NSInteger)preferredToolbarButtonType {
+    if ([plugIn respondsToSelector:@selector(preferredToolbarButtonType)]) {
+        return [plugIn preferredVerticalSplitPosition];
+    } else {
+        return 0;
+    }
 }
 
-
-- (BOOL)wantsToolbarButton {
-    return [plugIn wantsToolbarButton];
-}
-
-
-- (BOOL)wantsMainMenuItem {
-    return [plugIn wantsMainMenuItem];
-}
 
 @synthesize plugIn;
-@synthesize viewControllerDict;
-@synthesize viewPlacementMaskKey;
+@synthesize viewControllers;
+@synthesize currentViewPlacementMaskKey;
+@dynamic currentViewPlacementMask;
 @synthesize visibleWindowNumbers;
 @end

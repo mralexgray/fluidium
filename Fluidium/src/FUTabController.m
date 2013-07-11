@@ -17,59 +17,27 @@
 #import "FUWindowController.h"
 #import "FUWebPreferences.h"
 #import "FUWhitelistController.h"
-#import "FUHandlerController.h"
 #import "FUUserDefaults.h"
 #import "FUUtils.h"
 #import "FUActivation.h"
-#import "FUView.h"
 #import "FUWebView.h"
+#import "FUView.h"
 #import "FURecentURLController.h"
 #import "FUDownloadWindowController.h"
-#import "FUNotifications.h"
 #import "NSString+FUAdditions.h"
 #import "DOMNode+FUAdditions.h"
 #import "WebIconDatabase+FUAdditions.h"
 #import "WebViewPrivate.h"
-#import "WebUIDelegatePrivate.h"
-#import "WebInspector.h"
-#import "WebSecurityOriginPrivate.h"
-#import "FUJavaScriptBridge.h"
+#import <WebKit/WebKit.h>
 
-#ifdef FAKE
-#import "AutoTyper.h"
-#endif    
+NSString *const FUTabControllerProgressDidStartNotification = @"FUTabControllerProgressDidStartNotification";
+NSString *const FUTabControllerProgressDidChangeNotification = @"FUTabControllerProgressDidChangeNotification";
+NSString *const FUTabControllerProgressDidFinishNotification = @"FUTabControllerProgressDidFinishNotification";
 
-//#import <Security/Security.h>
-//#import <SecurityInterface/SFCertificateTrustPanel.h>
-
-/*
- * Function: SSLSecPolicyCopy
- * Purpose:
- *   Returns a copy of the SSL policy.
- */
-//static OSStatus SSLSecPolicyCopy(SecPolicyRef *ret_policy) {
-//    SecPolicyRef policy;
-//    SecPolicySearchRef policy_search;
-//    OSStatus status;
-//    
-//    *ret_policy = NULL;
-//    status = SecPolicySearchCreate(CSSM_CERT_X_509v3, &CSSMOID_APPLE_TP_SSL, NULL, &policy_search);
-//    //status = SecPolicySearchCreate(CSSM_CERT_X_509v3, &CSSMOID_APPLE_X509_BASIC, NULL, &policy_search);
-//    require_noerr(status, SecPolicySearchCreate);
-//    
-//    status = SecPolicySearchCopyNext(policy_search, &policy);
-//    require_noerr(status, SecPolicySearchCopyNext);
-//    
-//    *ret_policy = policy;
-//    
-//SecPolicySearchCopyNext:
-//    
-//    CFRelease(policy_search);
-//    
-//SecPolicySearchCreate:
-//    
-//    return (status);
-//}
+NSString *const FUTabControllerDidCommitLoadNotification = @"FUTabControllerDidCommitLoadNotification";
+NSString *const FUTabControllerDidFinishLoadNotification = @"FUTabControllerDidFinishLoadNotification";
+NSString *const FUTabControllerDidFailLoadNotification = @"FUTabControllerDidFailLoadNotification";
+NSString *const FUTabControllerDidClearWindowObjectNotification = @"FUTabControllerDidClearWindowObjectNotification";
 
 typedef enum {
     WebNavigationTypePlugInRequest = WebNavigationTypeOther + 1
@@ -79,70 +47,43 @@ typedef enum {
 + (BOOL)_canHandleRequest:(NSURLRequest *)req;
 @end
 
-@interface FUWindowController ()
-- (void)handleCommandClick:(FUActivation *)act URL:(NSString *)s;
-@end
-
 @interface FUTabController ()
-- (void)loadView;
-- (BOOL)isViewLoaded;
-
 - (void)setUpWebView;
 - (void)handleLoadFail:(NSError *)err;
 - (BOOL)willRetryWithTLDAdded:(WebView *)wv;
 - (NSImage *)defaultFavicon;
 
 - (void)postNotificationName:(NSString *)name;
-- (void)postNotificationName:(NSString *)name userInfo:(NSDictionary *)additionalInfo;
-
-- (BOOL)shouldHandleRequest:(NSURLRequest *)inReq;
+- (BOOL)shouldHandleRequest:(NSURLRequest *)req;
 - (BOOL)insertItem:(NSMenuItem *)item intoMenuItems:(NSMutableArray *)items afterItemWithTag:(NSInteger)tag;
 - (NSInteger)indexOfItemWithTag:(NSUInteger)tag inMenuItems:(NSArray *)items;
 - (NSString *)currentSelectionFromWebView;
 
 - (void)openPanelDidEnd:(NSSavePanel *)openPanel returnCode:(NSInteger)code contextInfo:(id <WebOpenPanelResultListener>)listener;
-- (void)savePanelDidEnd:(NSSavePanel *)savePanel returnCode:(NSInteger)code contextInfo:(NSURL *)URL;
-//- (void)geolocationAlertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(id <WebGeolocationPolicyListener>)listener;
+- (void)savePanelDidEnd:(NSSavePanel *)savePanel returnCode:(int)code contextInfo:(NSURL *)URL;
+@end
 
-@property (nonatomic, assign, readwrite) FUWindowController *windowController; // weak ref
-@property (nonatomic, retain) NSScriptCommand *suspendedCommand;
+@interface FUWindowController ()
+- (void)handleCommandClick:(FUActivation *)act request:(NSURLRequest *)req;
 @end
 
 @implementation FUTabController
 
-- (id)init {
-    return [self initWithWindowController:nil];
-}
-
-
-- (void)classDescriptionNeeded:(NSNotification *)n {
-    
-}
-
-
 - (id)initWithWindowController:(FUWindowController *)wc {
     if (self = [super init]) {
         self.windowController = wc;
-        self.javaScriptBridge = [[[FUJavaScriptBridge alloc] init] autorelease];
-
+        
         // necessary to prevent bindings exceptions
         self.URLString = @"";
         self.title = NSLocalizedString(@"Untitled", @"");
         self.favicon = [self defaultFavicon];
         self.statusText = @"";
-                
-        NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
-        [nc addObserver:self selector:@selector(classDescriptionNeeded:) name:NSClassDescriptionNeededForClassNotification object:[self class]];
     }
     return self;
 }
 
 
 - (void)dealloc {
-#ifdef FUDEBUG
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-#endif
-    [NSObject cancelPreviousPerformRequestsWithTarget:self];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     
     // taking some extra paranoid steps here with the webView to prevent crashing 
@@ -156,80 +97,60 @@ typedef enum {
     [webView setPolicyDelegate:nil];
     [webView setUIDelegate:nil];
     
-    if (inspector) {
-        [inspector webViewClosed];
-    }
-    
     self.view = nil;
     self.webView = nil;
-    self.javaScriptBridge = nil;
     self.windowController = nil;
     self.URLString = nil;
     self.initialURLString = nil;
     self.title = nil;
     self.favicon = nil;
     self.statusText = nil;
-    self.promptResultText = nil;
-    self.promptView = nil;
-    self.promptTextView = nil;
-    self.inspector = nil;
-    
-    self.currentJavaScriptAlert = nil;
-#ifdef FAKE
-    self.autoTyper = nil;
-    self.fileChooserPath = nil;
-#endif    
-
-    // be paranoid. resume the command JIC it has been suspended.
-    if (suspendedCommand) {
-        [suspendedCommand resumeExecutionWithResult:nil];
-    }
-    self.suspendedCommand = nil;
-    
+    self.clickElementInfo = nil;
+    self.hoverElementInfo = nil;
     [super dealloc];
 }
 
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"<FUTabController %p %@>", self, title];
+    return [NSString stringWithFormat:@"<FUTabController %@>", title];
 }
 
 
 #pragma mark -
 #pragma mark Actions
 
-- (IBAction)webGoBack:(id)sender {
+- (IBAction)goBack:(id)sender {
     [webView goBack:sender];
 }
 
 
-- (IBAction)webGoForward:(id)sender {
+- (IBAction)goForward:(id)sender {
     [webView goForward:sender];
 }
 
 
-- (IBAction)webReload:(id)sender {
+- (IBAction)reload:(id)sender {
     if (self.lastLoadFailed) {
-        [self loadURL:URLString];
+        [self goToLocation:self];
     } else {
         [webView reload:sender];
     }
 }
 
 
-- (IBAction)webStopLoading:(id)sender {
+- (IBAction)stopLoading:(id)sender {
     [webView stopLoading:sender];
 }
 
-- (void) webGoHome {
-    [self loadURL:[[FUUserDefaults instance] homeURLString]];
-    
-}
 
-
-- (IBAction)webGoHome:(id)sender {
-    [self loadURL:[[FUUserDefaults instance] homeURLString]];
+- (IBAction)goToLocation:(id)sender {
+    if (![URLString length]) {
+        return;
+    }
     
+    self.title = NSLocalizedString(@"Loading...", @"");
+    self.URLString = [URLString FU_stringByEnsuringURLSchemePrefix];
+    [webView setMainFrameURL:URLString];
 }
 
 
@@ -288,31 +209,31 @@ typedef enum {
 
 
 - (IBAction)openLinkInNewTabFromMenu:(id)sender {
-    NSDictionary *clickElementInfo = [sender representedObject];
-    NSString *s = [[clickElementInfo objectForKey:WebElementLinkURLKey] absoluteString];
-    [[FUDocumentController instance] loadURL:s destinationType:FUDestinationTypeTab];
+    NSURLRequest *req = [NSURLRequest requestWithURL:[clickElementInfo objectForKey:WebElementLinkURLKey]];
+    [[FUDocumentController instance] loadRequest:req destinationType:FUDestinationTypeTab];
+    self.clickElementInfo = nil;
 }
 
 
 - (IBAction)openLinkInNewWindowFromMenu:(id)sender {
-    NSDictionary *clickElementInfo = [sender representedObject];
-    NSString *s = [[clickElementInfo objectForKey:WebElementLinkURLKey] absoluteString];
-    [[FUDocumentController instance] loadURL:s destinationType:FUDestinationTypeWindow];
+    NSURLRequest *req = [NSURLRequest requestWithURL:[clickElementInfo objectForKey:WebElementLinkURLKey]];
+    [[FUDocumentController instance] loadRequest:req destinationType:FUDestinationTypeWindow];
+    self.clickElementInfo = nil;
 }
 
 
 - (IBAction)openFrameInNewWindowFromMenu:(id)sender {
-    NSDictionary *clickElementInfo = [sender representedObject];
     WebFrame *frame = [clickElementInfo objectForKey:WebElementFrameKey];
-    NSString *s = [[[[frame dataSource] mainResource] URL] absoluteString];
-    [[FUDocumentController instance] loadURL:s destinationType:FUDestinationTypeWindow];
+    NSURLRequest *req = [NSURLRequest requestWithURL:[[[frame dataSource] mainResource] URL]];
+    [[FUDocumentController instance] loadRequest:req destinationType:FUDestinationTypeWindow];
+    self.clickElementInfo = nil;
 }
 
 
 - (IBAction)openImageInNewWindowFromMenu:(id)sender {
-    NSDictionary *clickElementInfo = [sender representedObject];
-    NSString *s = [[clickElementInfo objectForKey:WebElementLinkURLKey] absoluteString];
-    [[FUDocumentController instance] loadURL:s destinationType:FUDestinationTypeWindow];
+    NSURLRequest *req = [NSURLRequest requestWithURL:[clickElementInfo objectForKey:WebElementImageURLKey]];
+    [[FUDocumentController instance] loadRequest:req destinationType:FUDestinationTypeWindow];
+    self.clickElementInfo = nil;
 }
 
 
@@ -324,17 +245,18 @@ typedef enum {
     }
     
     NSString *s = [NSString stringWithFormat:FUDefaultWebSearchFormatString(), term];
-    [[FUDocumentController instance] loadURL:s];
+    NSURLRequest *req = [NSURLRequest requestWithURL:[NSURL URLWithString:s]];
+    [(FUDocumentController *)[FUDocumentController instance] loadRequest:req];
+    self.clickElementInfo = nil;
 }
 
 
 - (IBAction)downloadLinkAsFromMenu:(id)sender {
-    NSDictionary *clickElementInfo = [sender representedObject];
     NSURL *URL = [clickElementInfo objectForKey:WebElementLinkURLKey];
     
     NSSavePanel *savePanel = [NSSavePanel savePanel];
     [savePanel setCanCreateDirectories:YES];
-    [savePanel setMessage:NSLocalizedString(@"Download Linked File As…", @"")];
+    [savePanel setMessage:NSLocalizedString(@"Download Linked File As...", @"")];
     NSString *filename = [[URL absoluteString] lastPathComponent];
     
     [savePanel beginSheetForDirectory:nil 
@@ -342,22 +264,6 @@ typedef enum {
                        modalForWindow:[self.view window] 
                         modalDelegate:self didEndSelector:@selector(savePanelDidEnd:returnCode:contextInfo:) 
                           contextInfo:[URL retain]]; // retained
-}
-
-
-- (IBAction)showWebInspector:(id)sender {
-    if (!inspector) {
-        self.inspector = [[[WebInspector alloc] initWithWebView:webView] autorelease];
-    }
-    [inspector show:sender];
-}
-
-
-- (IBAction)showErrorConsole:(id)sender {
-    if (!inspector) {
-        self.inspector = [[[WebInspector alloc] initWithWebView:webView] autorelease];
-    }
-    [inspector showConsole:sender];
 }
 
 
@@ -383,14 +289,11 @@ typedef enum {
     [view setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
     
     self.webView = [[[FUWebView alloc] initWithFrame:frame] autorelease];
+    [webView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
     
     [self setUpWebView];
     
     [view addSubview:webView];
-    
-#ifdef FAKE
-    self.autoTyper = [AutoTyper autoTyperWithWebView:webView];
-#endif        
 }
 
 
@@ -399,30 +302,8 @@ typedef enum {
 }
 
 
-- (CGFloat)estimatedProgress {
-    CGFloat progress = [webView estimatedProgress];
-
-    if ([webView isLoading] && progress < .10) {
-        progress = .10;
-    }
-    
-    return progress;
-}
-
-
-- (NSString *)documentSource {
-    return [[[[webView mainFrame] dataSource] representation] documentSource];
-}
-
-
-- (void)loadURL:(NSString *)s {
-    if (![s length]) {
-        return;
-    }
-        
-    self.title = NSLocalizedString(@"Loading...", @"");
-    self.URLString = [s stringByEnsuringURLSchemePrefix];
-    [webView setMainFrameURL:URLString];
+- (void)loadRequest:(NSURLRequest *)req {
+    [[webView mainFrame] loadRequest:req];
 }
 
 
@@ -433,58 +314,16 @@ typedef enum {
     if (frame != [webView mainFrame]) return;
     
     self.URLString = [[[[frame provisionalDataSource] request] URL] absoluteString];
-    self.title = NSLocalizedString(@"Loading…", @"");
-
-    [self postNotificationName:FUTabControllerDidStartProvisionalLoadNotification];
-}
-
-
-- (void)trustPanelDidEnd:(NSWindow *)sheet returnCode:(int)code contextInfo:(void *)ctx {
-    
+    self.title = NSLocalizedString(@"Loading...", @"");
 }
 
 
 - (void)webView:(WebView *)wv didFailProvisionalLoadWithError:(NSError *)err forFrame:(WebFrame *)frame {
     if (frame != [webView mainFrame]) return;
     
-//    Error Domain=NSURLErrorDomain 
-//    Code=-1202 
-//    UserInfo=0x115267790 "The certificate for this server is invalid. You might be connecting to a server that is pretending to be “fa.keyes.ie” which could put your confidential information at risk." Underlying Error=(Error Domain=kCFErrorDomainCFNetwork Code=-1202 UserInfo=0x115264c40 "The certificate for this server is invalid. You might be connecting to a server that is pretending to be “fa.keyes.ie” which could put your confidential information at risk."
-//    
-//    // NSURLErrorServerCertificateUntrusted = -1202
-//    if ([err code] == NSURLErrorServerCertificateUntrusted) {
-//        
-//        NSWindow *win = [webView window];
-//        SEL sel = @selector(trustPanelDidEnd:returnCode:contextInfo:);
-//        NSString *msg = @"msg";
-//        
-//        OSStatus status;
-//        
-//        SecCertificateRef cert = NULL;
-//        
-//        status = SecCertificateCreateFromData(const CSSM_DATA *data, CSSM_CERT_TYPE type, CSSM_CERT_ENCODING encoding, SecCertificateRef *certificate);
-//        
-//        // SecIdentityRef identity = NULL;
-//        // status = SecIdentityCopyCertificate(identity, &cert);
-//        
-//        SecPolicyRef sslPolicy = NULL;
-//        status = SSLSecPolicyCopy(&sslPolicy);
-//        
-//        NSArray *certs = [NSArray arrayWithObject:(id)cert];
-//        
-//        SecTrustRef trust = NULL;
-//        status = SecTrustCreateWithCertificates((CFArrayRef)certs, sslPolicy, &trust);
-//        
-//        [[SFCertificateTrustPanel sharedCertificateTrustPanel] beginSheetForWindow:win modalDelegate:self didEndSelector:sel contextInfo:NULL trust:trust message:msg];
-//        
-//        [[SFCertificateTrustPanel sharedCertificateTrustPanel] beginSheetForWindow:win modalDelegate:self didEndSelector:sel contextInfo:NULL trust:trust message:msg];
-//        
-//        
-//    } else {
-        if (![self willRetryWithTLDAdded:wv]) {
-            [self handleLoadFail:err];
-        }
-//    }
+    if (![self willRetryWithTLDAdded:wv]) {
+        [self handleLoadFail:err];
+    }
 }
 
 
@@ -508,11 +347,7 @@ typedef enum {
     self.favicon = [self defaultFavicon];
     
     [[self.view window] makeFirstResponder:webView];
-    
-    // remove old dock menu items
-    javaScriptBridge.dockMenuItems = nil;
 
-    [self setValue:[NSNumber numberWithBool:YES] forKey:@"canReload"];
     [self postNotificationName:FUTabControllerDidCommitLoadNotification];
 }
 
@@ -533,44 +368,27 @@ typedef enum {
 
 
 - (void)webView:(WebView *)wv didFinishLoadForFrame:(WebFrame *)frame {
-    if (frame == [webView mainFrame]) {
-        if (!didReceiveTitle) {
-            self.title = URLString;
-        }
-    }
+    if (frame != [webView mainFrame]) return;
 
+    if (!didReceiveTitle) {
+        self.title = URLString;
+    }
+    [self setValue:[NSNumber numberWithBool:YES] forKey:@"canReload"];
     [self postNotificationName:FUTabControllerDidFinishLoadNotification];
 }
 
 
 - (void)webView:(WebView *)wv didFailLoadWithError:(NSError *)err forFrame:(WebFrame *)frame {
-    //if (frame != [webView mainFrame]) return;
+    if (frame != [webView mainFrame]) return;
 
     [self handleLoadFail:err];
 }
 
 
 - (void)webView:(WebView *)wv didClearWindowObject:(WebScriptObject *)wso forFrame:(WebFrame *)frame {
-    //if (frame != [webView mainFrame]) return;
+    if (frame != [webView mainFrame]) return;
 
-    // set window.fluid object
-    DOMAbstractView *window = (DOMAbstractView *)[webView windowScriptObject];
-    [window setValue:javaScriptBridge forKey:@"fluid"];
-    
     [self postNotificationName:FUTabControllerDidClearWindowObjectNotification];
-
-    // must get the doc this way. using -[WebView mainFrameDocument] sometimes returns nil here. dunno why.
-    DOMDocument *doc = [window document];
-    [doc addEventListener:@"DOMContentLoaded" listener:self useCapture:NO];
-}
-
-
-- (void)handleEvent:(DOMEvent *)evt {
-    DOMAbstractView *window = (DOMAbstractView *)[webView windowScriptObject];
-    DOMDocument *doc = [window document];
-    [doc removeEventListener:@"DOMContentLoaded" listener:self useCapture:NO];
-    
-    [self postNotificationName:FUTabControllerDidLoadDOMContentNotification];
 }
 
 
@@ -589,7 +407,7 @@ typedef enum {
         FUActivation *act = [FUActivation activationFromWebActionInfo:info];
         if (act.isCommandKeyPressed) {
             [listener ignore];
-            [windowController handleCommandClick:act URL:[[req URL] absoluteString]];
+            [windowController handleCommandClick:act request:req];
         } else {
             [listener use];
         }
@@ -611,13 +429,13 @@ typedef enum {
         [listener ignore];
         return;
     }
-    
+
     FUActivation *act = [FUActivation activationFromWebActionInfo:info];
     if (act.isCommandKeyPressed) {
         [listener ignore];
-        [windowController handleCommandClick:act URL:[[req URL] absoluteString]];
+        [windowController handleCommandClick:act request:req];
     } else if ([[FUUserDefaults instance] targetedClicksCreateTabs]) {
-        [[[FUDocumentController instance] frontWindowController] loadURL:[[req URL] absoluteString] inNewTabAndSelect:YES];
+        [[[FUDocumentController instance] frontWindowController] loadRequest:req inNewTabInForeground:YES];
     } else {
         // look for existing frame with this name. if found, use it
         FUTabController *tc = nil;
@@ -626,7 +444,7 @@ typedef enum {
         if (existingFrame) {
             // found an existing frame with frameName. use it, and suppress new window creation
             [[tc.view window] makeKeyAndOrderFront:self];
-            [[[FUDocumentController instance] frontWindowController] selectTabController:tc];
+            [[[FUDocumentController instance] frontWindowController] orderTabControllerFront:tc];
 
             [existingFrame loadRequest:req];
             [listener ignore];
@@ -684,42 +502,11 @@ typedef enum {
 
 
 #pragma mark -
-#pragma mark WebQuotaDelegate
-
-#if FU_LOCAL_STORAGE_ENABLED
-- (void)webView:(WebView *)wv frame:(WebFrame *)frame exceededDatabaseQuotaForSecurityOrigin:(WebSecurityOrigin *)origin database:(NSString *)databaseIdentifier {
-    [origin setQuota:500 * 1024 * 1024];
-}
-#endif
-
-
-#pragma mark -
 #pragma mark WebUIDelegate
-
-//- (void)webView:(WebView *)wv decidePolicyForGeolocationRequestFromOrigin:(WebSecurityOrigin *)origin frame:(WebFrame *)frame listener:(id <WebGeolocationPolicyListener>)listener {
-//    NSString *site = [[[[frame dataSource] mainResource] URL] host];
-//    NSString *text = [NSString stringWithFormat:NSLocalizedString(@"The site '%@' would like to use your current location.", @""), site];
-//    NSString *button = NSLocalizedString(@"Allow", @"");
-//    NSString *altButton = NSLocalizedString(@"Don't Allow", @"");
-//    NSWindow *win = [wv window];
-//    NSAlert *alert = [NSAlert alertWithMessageText:text defaultButton:button alternateButton:altButton otherButton:nil informativeTextWithFormat:@""];
-//    [alert beginSheetModalForWindow:win modalDelegate:self didEndSelector:@selector(geolocationAlertDidEnd:returnCode:contextInfo:) contextInfo:[listener retain]]; // retained
-//}
-//
-//
-//- (void)geolocationAlertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(id <WebGeolocationPolicyListener>)listener {
-//    [listener autorelease]; // released
-//    if (NSAlertDefaultReturn == returnCode) {
-//        [listener allow];
-//    } else {
-//        [listener deny];
-//    }
-//}
-
 
 - (WebView *)webView:(WebView *)wv createWebViewWithRequest:(NSURLRequest *)req {
     FUDestinationType type = [[FUUserDefaults instance] targetedClicksCreateTabs] ? FUDestinationTypeTab : FUDestinationTypeWindow;
-    FUTabController *tc = [[FUDocumentController instance] loadURL:[[req URL] absoluteString] destinationType:type inForeground:YES]; // TODO this is supposed to be created offscreen in the background according to webkit docs
+    FUTabController *tc = [[FUDocumentController instance] loadRequest:req destinationType:type inForeground:YES]; // TODO this is supposed to be created offscreen in the background according to webkit docs
     return [tc webView];
 }
 
@@ -728,7 +515,7 @@ typedef enum {
     NSWindow *win = [wv window];
     FUWindowController *wc = [[[FUDocumentController instance] documentForWindow:win] windowController];
     
-    [wc selectTabController:[wc tabControllerForWebView:wv]];
+    [wc orderTabControllerFront:[wc tabControllerForWebView:wv]];
     [win makeKeyAndOrderFront:wv];
 }
 
@@ -741,7 +528,7 @@ typedef enum {
 
 - (void)webViewFocus:(WebView *)wv {
     FUTabController *tc = [windowController tabControllerForWebView:wv];
-    [windowController selectTabController:tc];
+    [windowController orderTabControllerFront:tc];
 }
 
 
@@ -771,9 +558,7 @@ typedef enum {
 
 
 - (void)webView:(WebView *)wv setToolbarsVisible:(BOOL)visible {
-    if (![[FUUserDefaults instance] targetedClicksCreateTabs]) {
-        [[[wv window] toolbar] setVisible:visible];
-    }
+    [[[wv window] toolbar] setVisible:visible];
 }
 
 
@@ -783,9 +568,7 @@ typedef enum {
 
 
 - (void)webView:(WebView *)wv setStatusBarVisible:(BOOL)visible {
-    if (![[FUUserDefaults instance] targetedClicksCreateTabs]) {
-        [[FUUserDefaults instance] setStatusBarShown:visible];
-    }
+    [[FUUserDefaults instance] setStatusBarShown:visible];
 }
 
 
@@ -796,17 +579,13 @@ typedef enum {
 
 
 - (void)webView:(WebView *)wv setResizable:(BOOL)resizable {
-    if (![[FUUserDefaults instance] targetedClicksCreateTabs]) {
-        // TODO
-    }
+    // TODO
 }
 
 
 - (void)webView:(WebView *)wv setFrame:(NSRect)frame {
-    if (![[FUUserDefaults instance] targetedClicksCreateTabs]) {
-        windowController.suppressNextFrameStringSave = YES;
-        [[windowController window] setFrame:frame display:YES];
-    }
+    windowController.suppressNextFrameStringSave = YES;
+    [[windowController window] setFrame:frame display:YES];
 }
 
 
@@ -815,19 +594,12 @@ typedef enum {
 }
 
 
-- (void)alertPanelDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)ctx {
-    
-}
-
-
 - (void)webView:(WebView *)wv runJavaScriptAlertPanelWithMessage:(NSString *)msg initiatedByFrame:(WebFrame *)frame {
-    NSString *tit = NSLocalizedString(@"JavaScript", @"");
-    NSString *defaultButton = NSLocalizedString(@"OK", @"");
-
-    //NSRunInformationalAlertPanel(title, msg, defaultButton, nil, nil);
-    
-    self.currentJavaScriptAlert = [NSAlert alertWithMessageText:tit defaultButton:defaultButton alternateButton:nil otherButton:nil informativeTextWithFormat:msg];
-    [currentJavaScriptAlert beginSheetModalForWindow:[[frame webView] window] modalDelegate:self didEndSelector:@selector(alertPanelDidEnd:returnCode:contextInfo:) contextInfo:NULL];
+    NSRunInformationalAlertPanel(NSLocalizedString(@"JavaScript", @""),  // title
+                                 msg,                                    // message
+                                 NSLocalizedString(@"OK", @""),          // default button
+                                 nil,                                    // alt button
+                                 nil);                                   // other button    
 }
 
 
@@ -841,36 +613,9 @@ typedef enum {
 }
 
 
-- (NSString *)webView:(WebView *)wv runJavaScriptTextInputPanelWithPrompt:(NSString *)prompt defaultText:(NSString *)defaultText initiatedByFrame:(WebFrame *)frame {
-    NSString *nibName = @"FUPromptView";
-    NSNib *nib = [[[NSNib alloc] initWithNibNamed:nibName bundle:[NSBundle mainBundle]] autorelease];
-    if (![nib instantiateNibWithOwner:self topLevelObjects:nil]) {
-        NSLog(@"Could not load nib named %@ in %s", nibName, __PRETTY_FUNCTION__);
-        return nil;
-    }
-    
-    self.promptResultText = defaultText;
-    
-    self.currentJavaScriptAlert = [NSAlert alertWithMessageText:NSLocalizedString(@"JavaScript", @"")
-                                                  defaultButton:NSLocalizedString(@"OK", @"")
-                                                alternateButton:NSLocalizedString(@"Cancel", @"")
-                                                    otherButton:nil
-                                      informativeTextWithFormat:prompt];
-
-    [promptTextView setFont:[NSFont systemFontOfSize:[NSFont systemFontSize]]];
-
-    [currentJavaScriptAlert setAccessoryView:promptView];
-    [[currentJavaScriptAlert window] makeFirstResponder:promptTextView];
-    [promptTextView selectAll:nil];
-
-    // run
-    NSInteger result = [currentJavaScriptAlert runModal];
-    
-    if (NSAlertDefaultReturn == result) {
-        return promptResultText;
-    } else {
-        return nil;
-    }
+- (NSString *)webView:(WebView *)wv runJavaScriptTextInputPanelWithPrompt:(NSString *)prompt defaultText:(NSString *)text initiatedByFrame:(WebFrame *)frame {
+    // TODO
+    return nil;
 }
 
 
@@ -885,45 +630,36 @@ typedef enum {
 
 
 - (void)webView:(WebView *)wv runOpenPanelForFileButtonWithResultListener:(id <WebOpenPanelResultListener>)listener {
-#ifdef FAKE
-    if ([fileChooserPath length]) {
-        [listener chooseFilename:fileChooserPath];
-        return;
-    }
-#endif
     NSOpenPanel *openPanel = [NSOpenPanel openPanel];
     [openPanel beginSheetForDirectory:nil 
                                  file:nil 
                        modalForWindow:[self.view window]
                         modalDelegate:self
                        didEndSelector:@selector(openPanelDidEnd:returnCode:contextInfo:) 
-                          contextInfo:[listener retain]]; // retained
+                          contextInfo:[listener retain]];
 }
 
 
 - (NSArray *)webView:(WebView *)wv contextMenuItemsForElement:(NSDictionary *)info defaultMenuItems:(NSArray *)defaultItems {        
+    self.clickElementInfo = info;
     NSMutableArray *items = [NSMutableArray arrayWithArray:defaultItems];
     id removeMe = nil;
     
-    for (id item in items) {        
+    for (id item in items) {
         NSInteger t = [item tag];
         
         if (WebMenuItemTagOpenLinkInNewWindow == t) {
             [item setTarget:self];
             [item setAction:@selector(openLinkInNewWindowFromMenu:)];
-            [item setRepresentedObject:info];
         } else if (WebMenuItemTagOpenFrameInNewWindow == t) {
             [item setTarget:self];
             [item setAction:@selector(openFrameInNewWindowFromMenu:)];
-            [item setRepresentedObject:info];
         } else if (WebMenuItemTagOpenImageInNewWindow == t) {
             [item setTarget:self];
             [item setAction:@selector(openImageInNewWindowFromMenu:)];
-            [item setRepresentedObject:info];
         } else if (WebMenuItemTagSearchWeb == t) {
             [item setTarget:self];
             [item setAction:@selector(searchWebFromMenu:)];
-            [item setRepresentedObject:info];
         } else if ([NSLocalizedString(@"Open Link", @"") isEqualToString:[item title]]) {
             removeMe = item;
         }
@@ -943,17 +679,15 @@ typedef enum {
             [openInNewTabItem setTitle:NSLocalizedString(@"Open Link in New Tab", @"")];
             [openInNewTabItem setTarget:self];
             [openInNewTabItem setAction:@selector(openLinkInNewTabFromMenu:)];
-            [openInNewTabItem setRepresentedObject:info];
             [items insertObject:openInNewTabItem atIndex:0];
         }
         
         [items insertObject:[NSMenuItem separatorItem] atIndex:2];
         
         NSMenuItem *downloadAsItem = [[[NSMenuItem alloc] init] autorelease];
-        [downloadAsItem setTitle:NSLocalizedString(@"Download Linked File As…", @"")];
+        [downloadAsItem setTitle:NSLocalizedString(@"Download Linked File As...", @"")];
         [downloadAsItem setTarget:self];
         [downloadAsItem setAction:@selector(downloadLinkAsFromMenu:)];
-        [downloadAsItem setRepresentedObject:info];
         [self insertItem:downloadAsItem intoMenuItems:items afterItemWithTag:WebMenuItemTagDownloadLinkToDisk];
     }
     
@@ -962,13 +696,15 @@ typedef enum {
 
 
 - (void)webView:(WebView *)wv mouseDidMoveOverElement:(NSDictionary *)info modifierFlags:(NSUInteger)flags {    
+    self.hoverElementInfo = info;
+    
     NSURL *URL = [info valueForKey:WebElementLinkURLKey];
     
     if (URL) {
         WebFrame *sourceFrame = [info valueForKey:WebElementFrameKey];
         WebFrame *targetFrame = [info valueForKey:WebElementLinkTargetFrameKey];
         DOMNode  *targetNode  = [info valueForKey:WebElementDOMNodeKey];
-        DOMElement *anchorEl  = [targetNode firstAncestorOrSelfByTagName:@"a"];
+        DOMElement *anchorEl  = [targetNode FU_firstAncestorOrSelfByTagName:@"a"];
         NSString *targetStr   = [anchorEl getAttribute:@"target"];
         NSString *format = nil;
         
@@ -1022,13 +758,21 @@ typedef enum {
 #pragma mark Private
 
 - (void)setUpWebView {
+    [webView setShouldCloseWithWindow:YES];
+    [webView setMaintainsBackForwardList:YES];
+    [webView setDrawsBackground:YES];
+    [webView setPreferences:[FUWebPreferences instance]];
+    
     // delegates
     [webView setResourceLoadDelegate:self];
     [webView setFrameLoadDelegate:self];
     [webView setPolicyDelegate:self];
     [webView setUIDelegate:self];
-    // downloadDelegate set in -[FUWebView initWithFrame:] cuz it's always the same
+    [webView setDownloadDelegate:[FUDownloadWindowController instance]];
 
+    BOOL spellCheckEnabled = [[FUUserDefaults instance] continuousSpellCheckingEnabled];
+    [webView setContinuousSpellCheckingEnabled:spellCheckEnabled];
+    
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
     [nc addObserver:self selector:@selector(webViewProgressStarted:) name:WebViewProgressStartedNotification object:webView];
     [nc addObserver:self selector:@selector(webViewProgressEstimateChanged:) name:WebViewProgressEstimateChangedNotification object:webView];
@@ -1037,15 +781,12 @@ typedef enum {
 
 
 - (BOOL)willRetryWithTLDAdded:(WebView *)wv {
-    NSString *host = [[NSURL URLWithString:[wv mainFrameURL]] host];
+    NSURL *URL = [NSURL URLWithString:[wv mainFrameURL]];
+    NSString *host = [URL host];
     
-    NSString *s = nil;
-    if (![host hasTLDSuffix]) {
-        s = [host stringByEnsuringTLDSuffix];
-    }
-    
-    if ([s length]) {
-        [self loadURL:s];
+    if (NSNotFound == [host rangeOfString:@"."].location) {
+        self.URLString = [NSString stringWithFormat:@"%@.com", host];
+        [self goToLocation:self];
         return YES;
     } else {
         return NO;
@@ -1054,11 +795,7 @@ typedef enum {
 
 
 - (void)handleLoadFail:(NSError *)err {
-    NSDictionary *info = [NSDictionary dictionaryWithObjectsAndKeys:
-                          err, FUErrorKey,
-                          [err localizedDescription], FUErrorDescriptionKey,
-                          nil];
-    [self postNotificationName:FUTabControllerDidFailLoadNotification userInfo:info];
+    [self postNotificationName:FUTabControllerDidFailLoadNotification];
 
     NSInteger code = [err code];
     
@@ -1087,40 +824,17 @@ typedef enum {
 
 
 - (NSImage *)defaultFavicon {
-    return [[WebIconDatabase sharedIconDatabase] defaultFavicon];
+    return [[WebIconDatabase sharedIconDatabase] FU_defaultFavicon];
 }
 
-
+                 
 - (void)postNotificationName:(NSString *)name {
-    [self postNotificationName:name userInfo:nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:name object:self];
 }
 
 
-- (void)postNotificationName:(NSString *)name userInfo:(NSDictionary *)additionalInfo {
-    NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                                     [NSNumber numberWithInteger:[windowController indexOfTabController:self]], FUIndexKey,
-                                     nil];
-    [userInfo addEntriesFromDictionary:additionalInfo];
-    [[NSNotificationCenter defaultCenter] postNotificationName:name object:self userInfo:userInfo];
-}
-
-
-- (BOOL)shouldHandleRequest:(NSURLRequest *)inReq {
-    NSURLRequest *req = [[FUHandlerController instance] requestForRequest:inReq];
-
-        // if there's a special scheme handler for inReq, return the final req to be handled
-    if (req != inReq) {
-        [[webView mainFrame] loadRequest:req];
-        return NO;
-        
-        // else if the url is whitelisted, return YES for it be handled
-    } else if ([[FUWhitelistController instance] processRequest:inReq]) {
-        return YES;
-        
-        // else return NO to signal don't handle
-    } else {
-        return NO;
-    }
+- (BOOL)shouldHandleRequest:(NSURLRequest *)req {
+    return [[FUWhitelistController instance] processRequest:req];
 }
 
 
@@ -1161,7 +875,7 @@ typedef enum {
 }
 
 
-- (void)savePanelDidEnd:(NSSavePanel *)savePanel returnCode:(NSInteger)code contextInfo:(NSURL *)URL {
+- (void)savePanelDidEnd:(NSSavePanel *)savePanel returnCode:(int)code contextInfo:(NSURL *)URL {
     [URL autorelease]; // released
     
     if (NSFileHandlingPanelCancelButton == code) {
@@ -1169,32 +883,26 @@ typedef enum {
     }
     
     NSURLRequest *req = [NSURLRequest requestWithURL:URL];
-    NSString *dirPath = [[savePanel directory] stringByExpandingTildeInPath];
-    NSString *filename = [[savePanel filename] lastPathComponent];
-
-    [[FUDocumentController instance] downloadRequest:req directory:dirPath filename:filename];
+    
+    FUDownloadWindowController *dc = [FUDownloadWindowController instance];
+    
+    [dc setNextDestinationDirPath:[[savePanel directory] stringByExpandingTildeInPath]];
+    [dc setNextDestinationFilename:[[savePanel filename] lastPathComponent]];
+    
+    [[[NSURLDownload alloc] initWithRequest:req delegate:dc] autorelease]; // start
 }
 
 @synthesize windowController;
 @synthesize view;
 @synthesize webView;
-@synthesize javaScriptBridge;
 @synthesize title;
 @synthesize URLString;
 @synthesize initialURLString;
 @synthesize favicon;
-@synthesize inspector;
+@synthesize clickElementInfo;
+@synthesize hoverElementInfo;
 @synthesize statusText;
-@synthesize promptResultText;
-@synthesize promptView;
-@synthesize promptTextView;
 @synthesize lastLoadFailed;
 @synthesize isProcessing;
 @synthesize canReload;
-@synthesize suspendedCommand;
-@synthesize currentJavaScriptAlert;
-#ifdef FAKE
-@synthesize autoTyper;
-@synthesize fileChooserPath;
-#endif    
 @end

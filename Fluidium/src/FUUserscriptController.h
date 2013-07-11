@@ -18,7 +18,7 @@
     NSMutableArray *userscripts;
 }
 
-+ (FUUserscriptController *)instance;
++ (id)instance;
 
 - (void)save;
 

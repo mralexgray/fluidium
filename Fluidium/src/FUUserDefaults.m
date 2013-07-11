@@ -13,9 +13,9 @@
 //  limitations under the License.
 
 #import "FUUserDefaults.h"
-#import "WebIconDatabase.h"
+#import "WebKitPrivate.h"
 
-#define FAKE_PLUGIN_ID @"com.fakeapp.FakePlugIn"
+NSString *const FUHomeURLStringDidChangeNotification = @"FUHomeURLStringDidChangeNotification";
 
 // Browser
 NSString *const kFUWebIconDatabaseDirectoryDefaultsKey = @"WebIconDatabaseDirectoryDefaults";
@@ -27,9 +27,7 @@ NSString *const kFUContinuousSpellCheckingEnabledKey = @"FUContinuousSpellChecki
 NSString *const kFUZoomTextOnlyKey = @"FUZoomTextOnly";
 
 // UI
-NSString *const kFUToolbarShownKey = @"FUToolbarShown";
 NSString *const kFUBookmarkBarShownKey = @"FUBookmarkBarShown";
-NSString *const kFUBookmarkBarShowsFaviconsKey = @"FUBookmarkBarShowsFavicons";
 NSString *const kFUStatusBarShownKey = @"FUStatusBarShown";
 NSString *const kFUTabBarHiddenAlwaysKey = @"FUTabBarHiddenAlways";
 NSString *const kFUWindowFrameStringKey = @"FUWindowFrameString";
@@ -43,9 +41,6 @@ NSString *const kFUGlobalShortcutKeyComboCodeKey = @"FUGlobalShortcutKeyComboCod
 NSString *const kFUGlobalShortcutKeyComboFlagsKey = @"FUGlobalShortcutKeyComboFlags";
 
 // Appearance Prefs
-NSString *const kFUWindowLevelKey = @"FUWindowLevel";
-NSString *const kFUWindowsHaveShadowKey = @"FUWindowsHaveShadow";
-NSString *const kFUWindowOpacityKey = @"FUWindowOpacity";
 NSString *const kFUStandardFontFamilyKey = @"FUStandardFontFamily";
 NSString *const kFUDefaultFontSizeKey = @"FUDefaultFontSize";
 NSString *const kFUFixedFontFamilyKey = @"FUFixedFontFamily";
@@ -66,7 +61,6 @@ NSString *const kFUTabbedBrowsingEnabledKey = @"FUTabbedBrowsingEnabled";
 NSString *const kFUSelectNewWindowsOrTabsAsCreatedKey = @"FUSelectNewWindowsOrTabsAsCreated";
 NSString *const kFUConfirmBeforeClosingMultipleTabsOrWindowsKey = @"FUConfirmBeforeClosingMultipleTabsOrWindows";
 NSString *const kFUTabBarHiddenForSingleTabKey = @"FUTabBarHiddenForSingleTab";
-NSString *const kFUSelectPriorSelectedTabOnTabCloseKey = @"FUSelectPriorSelectedTabOnTabClose";
 NSString *const kFUTabBarCellOptimumWidthKey = @"FUTabBarCellOptimumWidth";
 
 // Security Prefs
@@ -78,9 +72,6 @@ NSString *const kFUCookieAcceptPolicyKey = @"FUCookieAcceptPolicy";
 
 // Shortcut Prefs
 NSString *const kFUShortcutsKey = @"FUShortcuts";
-
-// Handler Prefs
-NSString *const kFUHandlersKey = @"FUHandlers";
 
 // Advanced Prefs
 NSString *const kFUAllowBrowsingToAnyDomainKey = @"FUAllowBrowsingToAnyDomain";
@@ -114,20 +105,15 @@ NSString *const kFUPlugInDrawerContentSizeStringKey = @"FUPlugInDrawerContentSiz
 
 
 + (void)setUpUserDefaults {
-    NSString *path = [[NSBundle mainBundle] pathForResource:FU_DEFAULT_VALUES_FILENAME ofType:@"plist"];
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"DefaultValues" ofType:@"plist"];
     NSMutableDictionary *defaultValues = [NSMutableDictionary dictionaryWithContentsOfFile:path];
-
-#if FU_LOCAL_STORAGE_ENABLED
-    [[NSUserDefaults standardUserDefaults] setObject:@"/tmp" forKey:@"WebDatabaseDirectory"];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-#endif
     
     [[NSUserDefaultsController sharedUserDefaultsController] setInitialValues:defaultValues];
     [[NSUserDefaults standardUserDefaults] registerDefaults:defaultValues];
 }
 
 
-+ (FUUserDefaults *)instance {
++ (id)instance {
     static FUUserDefaults *instance = nil;
     @synchronized (self) {
         if (!instance) {
@@ -148,26 +134,9 @@ NSString *const kFUPlugInDrawerContentSizeStringKey = @"FUPlugInDrawerContentSiz
     [[NSUserDefaults standardUserDefaults] setObject:s forKey:kFUWebIconDatabaseDirectoryDefaultsKey];
 }
 
-- (bool) doesContainSubString: (NSString *)str :(NSString* )subStr {
-	NSRange textRange;
-	textRange = [[str lowercaseString] rangeOfString:[subStr lowercaseString]];
-	
-	if(textRange.location != NSNotFound)
-	{
-		return true;
-	}
-	return false;
-}
 
 - (NSString *)homeURLString {
-
-	NSString * uri = [[NSUserDefaults standardUserDefaults] stringForKey:kFUHomeURLStringKey];
-	if ([self doesContainSubString:uri :@"://"])
-	{
-		return uri;
-	}
-	NSString * path = [[NSBundle mainBundle] pathForResource:uri ofType:@"html"];
-	return [[NSURL fileURLWithPath:path] absoluteString];
+    return [[NSUserDefaults standardUserDefaults] stringForKey:kFUHomeURLStringKey];
 }
 - (void)setHomeURLString:(NSString *)s {
     [[NSUserDefaults standardUserDefaults] setObject:s forKey:kFUHomeURLStringKey];
@@ -220,14 +189,6 @@ NSString *const kFUPlugInDrawerContentSizeStringKey = @"FUPlugInDrawerContentSiz
 #pragma mark -
 #pragma mark UI
 
-- (BOOL)toolbarShown {
-    return [[NSUserDefaults standardUserDefaults] boolForKey:kFUToolbarShownKey];
-}
-- (void)setToolbarShown:(BOOL)yn {
-    [[NSUserDefaults standardUserDefaults] setBool:yn forKey:kFUToolbarShownKey];
-}
-
-
 - (BOOL)statusBarShown {
     return [[NSUserDefaults standardUserDefaults] boolForKey:kFUStatusBarShownKey];
 }
@@ -241,14 +202,6 @@ NSString *const kFUPlugInDrawerContentSizeStringKey = @"FUPlugInDrawerContentSiz
 }
 - (void)setBookmarkBarShown:(BOOL)yn {
     [[NSUserDefaults standardUserDefaults] setBool:yn forKey:kFUBookmarkBarShownKey];
-}
-
-
-- (BOOL)bookmarkBarShowsFavicons {
-    return [[NSUserDefaults standardUserDefaults] boolForKey:kFUBookmarkBarShowsFaviconsKey];
-}
-- (void)setBookmarkBarShowsFavicons:(BOOL)yn {
-    [[NSUserDefaults standardUserDefaults] setBool:yn forKey:kFUBookmarkBarShowsFaviconsKey];
 }
 
 
@@ -291,30 +244,6 @@ NSString *const kFUPlugInDrawerContentSizeStringKey = @"FUPlugInDrawerContentSiz
 
 #pragma mark -
 #pragma mark Appearance Prefs
-
-- (NSInteger)windowLevel {
-    return [[NSUserDefaults standardUserDefaults] integerForKey:kFUWindowLevelKey];
-}
-- (void)setWindowLevel:(NSInteger)i {
-    [[NSUserDefaults standardUserDefaults] setInteger:i forKey:kFUWindowLevelKey];
-}
-
-
-- (BOOL)windowsHaveShadow {
-    return [[NSUserDefaults standardUserDefaults] boolForKey:kFUWindowsHaveShadowKey];
-}
-- (void)setWindowsHaveShadow:(BOOL)yn {
-    [[NSUserDefaults standardUserDefaults] setBool:yn forKey:kFUWindowsHaveShadowKey];
-}
-
-
-- (CGFloat)windowOpacity {
-    return [[NSUserDefaults standardUserDefaults] floatForKey:kFUWindowOpacityKey];
-}
-- (void)setWindowOpacity:(CGFloat)i {
-    [[NSUserDefaults standardUserDefaults] setFloat:i forKey:kFUWindowOpacityKey];
-}
-
 
 - (NSString *)standardFontFamily {
     return [[NSUserDefaults standardUserDefaults] stringForKey:kFUStandardFontFamilyKey];
@@ -450,14 +379,6 @@ NSString *const kFUPlugInDrawerContentSizeStringKey = @"FUPlugInDrawerContentSiz
 }
 
 
-- (BOOL)selectPriorSelectedTabOnTabClose {
-    return [[NSUserDefaults standardUserDefaults] boolForKey:kFUSelectPriorSelectedTabOnTabCloseKey];
-}
-- (void)setSelectPriorSelectedTabOnTabClose:(BOOL)yn {
-    [[NSUserDefaults standardUserDefaults] setBool:yn forKey:kFUSelectPriorSelectedTabOnTabCloseKey];
-}
-
-
 - (NSInteger)tabBarCellOptimumWidth {
     return [[NSUserDefaults standardUserDefaults] integerForKey:kFUTabBarCellOptimumWidthKey];
 }
@@ -521,17 +442,6 @@ NSString *const kFUPlugInDrawerContentSizeStringKey = @"FUPlugInDrawerContentSiz
 
 
 #pragma mark -
-#pragma mark Handler Prefs
-
-- (NSArray *)handlers {
-    return [[NSUserDefaults standardUserDefaults] arrayForKey:kFUHandlersKey];
-}
-- (void)setHandlers:(NSArray *)a {
-    [[NSUserDefaults standardUserDefaults] setObject:a forKey:kFUHandlersKey];
-}
-
-
-#pragma mark -
 #pragma mark Whitelist Prefs
 
 - (BOOL)allowBrowsingToAnyDomain {
@@ -570,15 +480,7 @@ NSString *const kFUPlugInDrawerContentSizeStringKey = @"FUPlugInDrawerContentSiz
 
 
 - (NSArray *)visiblePlugInIdentifiers {
-    NSArray *a = [[NSUserDefaults standardUserDefaults] arrayForKey:kFUVisiblePlugInIdentifiersKey];
-#ifdef FAKE
-    if (![a containsObject:FAKE_PLUGIN_ID]) {
-        NSMutableArray *ma = [NSMutableArray arrayWithArray:a];
-        [ma addObject:FAKE_PLUGIN_ID];
-        a = [[ma copy] autorelease];
-    }
-#endif
-    return a;
+    return [[NSUserDefaults standardUserDefaults] arrayForKey:kFUVisiblePlugInIdentifiersKey];
 }
 - (void)setVisiblePlugInIdentifiers:(NSArray *)a {
     [[NSUserDefaults standardUserDefaults] setObject:a forKey:kFUVisiblePlugInIdentifiersKey];

@@ -15,11 +15,7 @@
 #import <Cocoa/Cocoa.h>
 
 @interface FUWindowToolbar : NSToolbar {
-    NSWindow *window;
-    BOOL suppressNextToolbarShownChange;
+
 }
 
-- (void)showTemporarily;
-
-@property (nonatomic, assign) NSWindow *window; // weakref
 @end

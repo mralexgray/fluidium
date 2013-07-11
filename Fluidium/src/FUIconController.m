@@ -14,11 +14,11 @@
 
 #import "FUIconController.h"
 #import "FUApplication.h"
-#import "FUNotifications.h"
 #import "IconFamily.h"
 
 @interface FUIconController ()
 - (void)generateIcnsFile;
+- (void)applicationVerisonDidChange:(NSNotification *)n;
 @end
 
 @implementation FUIconController
@@ -30,7 +30,7 @@
 }
 
 
-+ (FUIconController *)instance {
++ (id)instance {
     static FUIconController *instance = nil;
     @synchronized (self) {
         if (!instance) {
@@ -43,8 +43,7 @@
 
 - (id)init {
     if (self = [super init]) {
-        NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
-        [nc addObserver:self selector:@selector(applicationVersionDidChange:) name:FUApplicationVersionDidChangeNotification object:NSApp];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationVerisonDidChange:) name:FUApplicationVersionDidChangeNotification object:NSApp];
     }
     return self;
 }
@@ -121,7 +120,7 @@
     
 //    BOOL icnsExists = [[NSFileManager defaultManager] fileExistsAtPath:icnsPath];
 //    if (!icnsExists) {
-        NSString *appPath  = [[[NSBundle mainBundle] bundlePath] stringByExpandingTildeInPath];
+        NSString *appPath  = [[NSBundle mainBundle].bundlePath stringByExpandingTildeInPath];
         [[IconFamily iconFamilyWithIconOfFile:appPath] writeToFile:icnsPath];
         //NSImage *image = [[NSWorkspace sharedWorkspace] iconForFile:appPath];
         //[NSApp setApplicationIconImage:image];
@@ -129,16 +128,6 @@
 //    }
     
     [pool release];
-}
-
-
-- (void)setDockTileLabel:(NSString *)label {
-    NSDockTile *dockTile = [NSApp dockTile];
-    [dockTile setBadgeLabel:label];
-    if ([label length]) {
-        [dockTile setContentView:dockTileImageView];
-        [dockTile display];
-    }
 }
 
 
@@ -169,10 +158,8 @@
 #pragma mark -
 #pragma mark Notifications
 
-- (void)applicationVersionDidChange:(NSNotification *)n {
-    if ([[FUApplication instance] isFluidSSB]) {
-        [self performSelectorInBackground:@selector(generateIcnsFile) withObject:nil];
-    }
+- (void)applicationVerisonDidChange:(NSNotification *)n {
+    [self performSelectorInBackground:@selector(generateIcnsFile) withObject:nil];
 }
 
 @synthesize dockTileImageView;

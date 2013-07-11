@@ -45,7 +45,7 @@
 }
 
 
-- (void)displayMenu:(NSTimer *)t {
+- (void)displayMenu:(NSTimer *)theTimer {
     NSEvent *evt = [timer userInfo];
     
     NSInteger y = NSMinY([[self superview] frame]) + NSMinY([self frame]);
@@ -68,7 +68,7 @@
     [self highlight:NO];
     [self setImage:[NSImage imageNamed:@"OverflowButtonPressed"]];
     
-    self.timer = [NSTimer timerWithTimeInterval:0 
+    self.timer = [NSTimer timerWithTimeInterval:0.0 
                                          target:self 
                                        selector:@selector(displayMenu:) 
                                        userInfo:evt 

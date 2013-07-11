@@ -15,21 +15,21 @@
 #import "FUBookmarkWindowController.h"
 #import "FUBookmark.h"
 #import "FUBookmarkController.h"
-#import "FUNotifications.h"
 
 @interface FUBookmarkWindowController ()
-- (void)postBookmarksDidChangeNotification;
+- (void)postBookmarksChangedNotification;
+- (void)bookmarksChanged:(NSNotification *)n;
 - (void)update;
 
-- (void)insertObject:(FUBookmark *)bmark inBookmarksAtIndex:(NSInteger)i;
-- (void)removeObjectFromBookmarksAtIndex:(NSInteger)i;
-- (void)startObservingBookmark:(FUBookmark *)bmark;
-- (void)stopObservingBookmark:(FUBookmark *)bmark;
+- (void)insertObject:(FUBookmark *)bookmark inBookmarksAtIndex:(NSInteger)index;
+- (void)removeObjectFromBookmarksAtIndex:(NSInteger)index;
+- (void)startObservingBookmark:(FUBookmark *)bookmark;
+- (void)stopObservingBookmark:(FUBookmark *)bookmark;
 @end
 
 @implementation FUBookmarkWindowController
 
-+ (FUBookmarkWindowController *)instance {    
++ (id)instance {    
     static FUBookmarkWindowController *instance = nil;
     @synchronized (self) {
         if (!instance) {
@@ -49,7 +49,6 @@
 
 
 - (void)dealloc {
-    [NSObject cancelPreviousPerformRequestsWithTarget:self];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 
     self.tableView = nil;
@@ -60,7 +59,7 @@
 
 - (void)awakeFromNib {
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
-    [nc addObserver:self selector:@selector(bookmarksDidChange:) name:FUBookmarksDidChangeNotification object:nil];
+    [nc addObserver:self selector:@selector(bookmarksChanged:) name:FUBookmarksChangedNotification object:nil];
 }
 
 
@@ -69,38 +68,31 @@
 
 - (IBAction)insert:(id)sender {
     [arrayController insert:sender];
-    [self performSelector:@selector(postBookmarksDidChangeNotification) withObject:nil afterDelay:0];
+    [self performSelector:@selector(postBookmarksChangedNotification) withObject:nil afterDelay:0];
 }
 
 
 - (IBAction)remove:(id)sender {
     [arrayController remove:sender];
-    [self performSelector:@selector(postBookmarksDidChangeNotification) withObject:nil afterDelay:0];
+    [self performSelector:@selector(postBookmarksChangedNotification) withObject:nil afterDelay:0];
 }
 
 
 #pragma mark -
 #pragma mark Public
 
-- (void)appendBookmark:(FUBookmark *)bmark {
-    [arrayController addObject:bmark];
+- (void)appendBookmark:(FUBookmark *)b {
+    [arrayController addObject:b];
 }
 
 
-- (void)insertBookmark:(FUBookmark *)bmark atIndex:(NSInteger)i {
-    [arrayController insertObject:bmark atArrangedObjectIndex:i];
+- (void)insertBookmark:(FUBookmark *)b atIndex:(NSInteger)i {
+    [arrayController insertObject:b atArrangedObjectIndex:i];
 }
 
 
-- (void)removeBookmark:(FUBookmark *)bmark {
-    [arrayController removeObject:bmark];
-}
-
-
-- (void)beginEditingContentForBookmarkAtIndex:(NSInteger)i {
-    [[self window] makeKeyAndOrderFront:self];
-    [arrayController setSelectionIndex:i];
-    [tableView scrollRowToVisible:i];
+- (void)removeBookmark:(FUBookmark *)b {
+    [arrayController removeObject:b];
 }
 
 
@@ -113,8 +105,8 @@
 #pragma mark Private
 
 - (void)update {
-    for (FUBookmark *bmark in self.bookmarks) {
-        [self startObservingBookmark:bmark];
+    for (FUBookmark *bookmark in self.bookmarks) {
+        [self startObservingBookmark:bookmark];
     }
     
     [arrayController setContent:self.bookmarks];
@@ -127,42 +119,42 @@
 #pragma mark -
 #pragma mark ArrayController / Undo
 
-- (void)insertObject:(FUBookmark *)bmark inBookmarksAtIndex:(NSInteger)i {
+- (void)insertObject:(FUBookmark *)bookmark inBookmarksAtIndex:(NSInteger)index {
     NSUndoManager *undo = [[self window] undoManager];
-    [[undo prepareWithInvocationTarget:self] removeObjectFromBookmarksAtIndex:i];
+    [[undo prepareWithInvocationTarget:self] removeObjectFromBookmarksAtIndex:index];
 
-    [self startObservingBookmark:bmark];
-    [self.bookmarks insertObject:bmark atIndex:i];
+    [self startObservingBookmark:bookmark];
+    [self.bookmarks insertObject:bookmark atIndex:index];
 }
 
 
-- (void)removeObjectFromBookmarksAtIndex:(NSInteger)i {
-    FUBookmark *bmark = [self.bookmarks objectAtIndex:i];
+- (void)removeObjectFromBookmarksAtIndex:(NSInteger)index {
+    FUBookmark *bookmark = [self.bookmarks objectAtIndex:index];
     
     NSUndoManager *undo = [[self window] undoManager];
-    [[undo prepareWithInvocationTarget:self] insertObject:bmark inBookmarksAtIndex:i];
+    [[undo prepareWithInvocationTarget:self] insertObject:bookmark inBookmarksAtIndex:index];
     
-    [self stopObservingBookmark:bmark];
-    [self.bookmarks removeObjectAtIndex:i];
+    [self stopObservingBookmark:bookmark];
+    [self.bookmarks removeObjectAtIndex:index];
 }
 
 
-- (void)startObservingBookmark:(FUBookmark *)bmark {
-    [bmark addObserver:self
-            forKeyPath:@"title"
-               options:NSKeyValueObservingOptionOld
-               context:NULL];
+- (void)startObservingBookmark:(FUBookmark *)bookmark {
+    [bookmark addObserver:self
+               forKeyPath:@"title"
+                  options:NSKeyValueObservingOptionOld
+                  context:NULL];
 
-    [bmark addObserver:self
-            forKeyPath:@"content"
-               options:NSKeyValueObservingOptionOld
-               context:NULL];
+    [bookmark addObserver:self
+               forKeyPath:@"content"
+                  options:NSKeyValueObservingOptionOld
+                  context:NULL];
 }
 
 
-- (void)stopObservingBookmark:(FUBookmark *)bmark {
-    [bmark removeObserver:self forKeyPath:@"title"];
-    [bmark removeObserver:self forKeyPath:@"content"];
+- (void)stopObservingBookmark:(FUBookmark *)bookmark {
+    [bookmark removeObserver:self forKeyPath:@"title"];
+    [bookmark removeObserver:self forKeyPath:@"content"];
 }
 
 
@@ -171,7 +163,7 @@
 }
 
 
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)obj change:(NSDictionary *)change context:(void *)ctx {
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)obj change:(NSDictionary *)change context:(void *)context {
     NSUndoManager *undo = [[self window] undoManager];
     id oldValue = [change objectForKey:NSKeyValueChangeOldKey];
     [[undo prepareWithInvocationTarget:self] changeKeyPath:keyPath ofObject:obj toValue:oldValue];
@@ -181,13 +173,13 @@
 #pragma mark -
 #pragma mark Notifications
 
-- (void)bookmarksDidChange:(NSNotification *)n {
+- (void)bookmarksChanged:(NSNotification *)n {
     [self update];
 }
 
 
-- (void)postBookmarksDidChangeNotification {
-    [[NSNotificationCenter defaultCenter] postNotificationName:FUBookmarksDidChangeNotification object:nil];
+- (void)postBookmarksChangedNotification {
+    [[NSNotificationCenter defaultCenter] postNotificationName:FUBookmarksChangedNotification object:nil];
 }
 
 
@@ -197,7 +189,7 @@
 
 
 - (void)windowDidResignKey:(NSNotification *)n {
-    [self postBookmarksDidChangeNotification];
+    [self postBookmarksChangedNotification];
 }
 
 @synthesize tableView;

@@ -18,11 +18,9 @@
     NSImageView *dockTileImageView;
 }
 
-+ (FUIconController *)instance;
++ (id)instance;
 
 - (void)setCustomAppIconToFileAtPath:(NSString *)path;
-
-- (void)setDockTileLabel:(NSString *)label;
 
 @property (nonatomic, retain) NSImageView *dockTileImageView;
 @end

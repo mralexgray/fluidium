@@ -14,7 +14,7 @@
 
 #import "FUDownloadListButton.h"
 #import "FUDownloadListButtonCell.h"
-#import <TDAppKit/NSImage+TDAdditions.h>
+#import "NSImage+FUAdditions.h"
 
 #define STOP_PROGRESS_BUTTON_TAG 2
 
@@ -33,7 +33,7 @@
 - (void)awakeFromNib {
     if (STOP_PROGRESS_BUTTON_TAG == [self tag]) { // stop progress button needs to be resized. its too big.
         NSImage *img = [NSImage imageNamed:NSImageNameStopProgressFreestandingTemplate];
-        [self setImage:[img scaledImageOfSize:NSMakeSize(14, 14)]];
+        [self setImage:[img FU_scaledImageOfSize:NSMakeSize(14, 14)]];
     }
     [self setShowsBorderOnlyWhileMouseInside:YES];
 }

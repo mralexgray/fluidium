@@ -13,19 +13,12 @@
 //  limitations under the License.
 
 #import <Cocoa/Cocoa.h>
-#import <TDAppKit/TDComboField.h>
 
-typedef enum {
-    FUWindowLevelNormal = 0,
-    FUWindowLevelFloating,
-    FUWindowLevelBelowDesktop
-} FUWindowLevel;
+extern NSString *const FUSpacesBehaviorDidChangeNotification;
 
 @interface FUWindow : NSWindow {
-    IBOutlet TDComboField *comboField;
+
 }
 
-- (IBAction)forcePerformClose:(id)sender;
-
-@property (nonatomic, retain) TDComboField *comboField;
+- (IBAction)FU_forcePerformClose:(id)sender;
 @end

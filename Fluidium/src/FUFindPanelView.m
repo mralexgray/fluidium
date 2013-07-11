@@ -35,8 +35,7 @@
 }
 
 
-- (void)drawRect:(NSRect)dirtyRect {
-    NSRect rect = [self bounds];
+- (void)drawRect:(NSRect)rect {
     [gradient drawInRect:rect angle:270];
 
     [borderColor set];

@@ -38,73 +38,69 @@
 
 - (FUShortcutCommand *)commandForInput:(NSString *)commandString {
     NSMutableArray *URLStrings = [NSMutableArray array];
+
+    // fetch non-parameterized replacement (e.g. 'g' for "http://google.com")
+    NSString *replacementString = [self replacementStringForshortcutKey:commandString];
+    NSString *query = nil;
+    
+
+    // fetch parameterized replacement (e.g. 'g xxx' for "http://google.com/q=%@")
+    BOOL isIndexed = NO;
+    if (![replacementString length]) {
+        NSRange r = [commandString rangeOfString:@" "];
+        if (NSNotFound == r.location) {
+            return nil;
+        }
+        
+        NSInteger index = r.location;
+        NSString *shortcutKey = [commandString substringToIndex:index];
+        
+        replacementString = [self replacementFormatForshortcutKey:shortcutKey isIndexed:&isIndexed];
+        if ([commandString length] > index + 1) {
+            query = [commandString substringFromIndex:index+1];
+        }
+    }
+
     BOOL isTabbed = NO;
     BOOL isPiped = NO;
     
-    if ([commandString hasPrefix:@"@"] && [commandString length] > 1) {
-        [URLStrings addObject:[NSString stringWithFormat:@"http://twitter.com/%@", [commandString substringFromIndex:1]]];
-        isTabbed = NO;
-        isPiped = NO;
-    } else {
-        // fetch non-parameterized replacement (e.g. 'g' for "http://google.com")
-        NSString *replacementString = [self replacementStringForshortcutKey:commandString];
-        NSString *query = nil;
+    if ([replacementString length]) {
+        // ??
+        //replacementString = [replacementString stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+        //
+        isTabbed = (NSNotFound != [replacementString rangeOfString:@","].location);
+        isPiped = (NSNotFound != [replacementString rangeOfString:@"|"].location);
         
-        // fetch parameterized replacement (e.g. 'g xxx' for "http://google.com/q=%@")
-        BOOL isIndexed = NO;
-        if (![replacementString length]) {
-            NSRange r = [commandString rangeOfString:@" "];
-            if (NSNotFound == r.location) {
-                return nil;
-            }
-            
-            NSInteger index = r.location;
-            NSString *shortcutKey = [commandString substringToIndex:index];
-            
-            replacementString = [self replacementFormatForshortcutKey:shortcutKey isIndexed:&isIndexed];
-            if ([commandString length] > index + 1) {
-                query = [commandString substringFromIndex:index+1];
+        NSMutableArray *toks = nil;
+        if (isIndexed) {
+            toks = [NSMutableArray array];
+            PKTokenizer *t = [PKTokenizer tokenizerWithString:query];
+            PKToken *eof = [PKToken EOFToken];
+            PKToken *tok = nil;
+            while ((tok = [t nextToken]) != eof) {
+                [toks addObject:tok];
             }
         }
-
-        if ([replacementString length]) {
-            // ??
-            //replacementString = [replacementString stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-            //
-            isTabbed = (NSNotFound != [replacementString rangeOfString:@","].location);
-            isPiped = (NSNotFound != [replacementString rangeOfString:@"|"].location);
+        
+        if (isTabbed || isPiped) {
+            NSArray *replacementStrings = [replacementString componentsSeparatedByString:(isPiped ? @"|" : @",")];
             
-            NSMutableArray *toks = nil;
-            if (isIndexed) {
-                toks = [NSMutableArray array];
-                PKTokenizer *t = [PKTokenizer tokenizerWithString:query];
-                PKToken *eof = [PKToken EOFToken];
-                PKToken *tok = nil;
-                while ((tok = [t nextToken]) != eof) {
-                    [toks addObject:tok];
+            for (NSString *fmt in replacementStrings) {
+                if (isIndexed) {
+                    [URLStrings addObject:[self URLStringWithFormat:fmt queryTokens:toks]];
+                } else {
+                    [URLStrings addObject:[self URLStringWithFormat:fmt query:query]];
                 }
             }
-            
-            if (isTabbed || isPiped) {
-                NSArray *replacementStrings = [replacementString componentsSeparatedByString:(isPiped ? @"|" : @",")];
-                
-                for (NSString *fmt in replacementStrings) {
-                    if (isIndexed) {
-                        [URLStrings addObject:[self URLStringWithFormat:fmt queryTokens:toks]];
-                    } else {
-                        [URLStrings addObject:[self URLStringWithFormat:fmt query:query]];
-                    }
-                }
+        } else {
+            if (isIndexed) {
+                [URLStrings addObject:[self URLStringWithFormat:replacementString queryTokens:toks]];
             } else {
-                if (isIndexed) {
-                    [URLStrings addObject:[self URLStringWithFormat:replacementString queryTokens:toks]];
-                } else {
-                    [URLStrings addObject:[self URLStringWithFormat:replacementString query:query]];
-                }
+                [URLStrings addObject:[self URLStringWithFormat:replacementString query:query]];
             }
         }
     }
-        
+    
     if (![URLStrings count]) {
         return nil;
     }
@@ -153,18 +149,13 @@
     NSMutableString *mfmt = [[fmt mutableCopy] autorelease];
     CFStringTrimWhitespace((CFMutableStringRef)mfmt);
     
-    [mfmt replaceOccurrencesOfString:@"%" withString:@"%%" options:0 range:NSMakeRange(0, [mfmt length])];
-    [mfmt replaceOccurrencesOfString:@"%%@" withString:@"%@" options:0 range:NSMakeRange(0, [mfmt length])];
-    
-    NSMutableString *result = nil;
+    NSString *result = nil;
 
     if ([q length]) {
-        result = [NSMutableString stringWithFormat:mfmt, q];
+        result = [NSString stringWithFormat:mfmt, q];
     } else {
         result = mfmt;
     }
-
-    [result replaceOccurrencesOfString:@"%%" withString:@"%" options:0 range:NSMakeRange(0, [result length])];
 
     return result;
 }
@@ -192,11 +183,11 @@
             NSString *s = [shortcut objectForKey:@"replacement"];
             if (NSNotFound != [s rangeOfString:@"%@"].location) {
                 result = s;
-                *outIndexed = NO;
+                (*outIndexed) = NO;
                 break;
             } else if  (NSNotFound != [s rangeOfString:@"$1"].location) {
                 result = s;
-                *outIndexed = YES;
+                (*outIndexed) = YES;
                 break;
             }
         }

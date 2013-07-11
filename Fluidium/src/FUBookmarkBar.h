@@ -12,14 +12,13 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#import <TDAppKit/TDDraggableBar.h>
+#import "FUBar.h"
 
-@class FUBookmark;
 @class FUBookmarkBarButton;
 @class FUBookmarkButtonSeparator;
 @class FUBookmarkBarOverflowButton;
 
-@interface FUBookmarkBar : TDDraggableBar {
+@interface FUBookmarkBar : FUBar {
     FUBookmarkButtonSeparator *separator;
     NSMutableArray *buttons;
     NSInteger currDropIndex;
@@ -29,12 +28,11 @@
     NSInteger visibleButtonCount;
     
     FUBookmarkBarButton *draggingButton;
-    
-    BOOL draggingExistingButton;
 }
 
+- (void)addButtonForItem:(id)item;
+- (void)addItem:(id)item;
 - (void)startedDraggingButton:(FUBookmarkBarButton *)button;
-- (void)finishedDraggingButton;
 
 @property (nonatomic, retain) FUBookmarkButtonSeparator *separator;
 @property (nonatomic, retain) NSMutableArray *buttons;

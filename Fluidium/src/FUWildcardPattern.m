@@ -96,7 +96,6 @@ static NSCharacterSet *sRegexMetaCharSet = nil;
 
 
 - (BOOL)isMatch:(NSString *)s {
-    if (![s length]) return NO;
     return 0 == regexec(&pattern, [s UTF8String], 0, NULL, 0);
 }
 

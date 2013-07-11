@@ -14,16 +14,13 @@
 
 #import "FUApplication.h"
 #import "FUUserDefaults.h"
-#import "FUNotifications.h"
 #import "FUDownloadWindowController.h"
 #import "FUBookmarkWindowController.h"
-#import "FUUserthingWindowController.h"
 #import "PTHotKey.h"
 #import "FUAppearancePreferences.h"
 #import "FUPlugInPreferences.h"
-#import "FUDocumentController.h"
+#import "TDSourceCodeTextView.h"
 #import "FUWhitelistController.h"
-#import "FUHandlerController.h"
 #import "FUUserscriptController.h"
 #import "FUUserstyleController.h"
 #import "FURecentURLController.h"
@@ -32,39 +29,30 @@
 #import "FUDownloadWindowController.h"
 #import "FUUserAgentWindowController.h"
 #import "FUBookmarkController.h"
-#import "OAPreferenceController.h"
+#import <OmniAppKit/OAPreferenceController.h>
 
-#define ABOUT_ITEM_TAG 547
-#define HIDE_ITEM_TAG 647
-#define QUIT_MENU_TAG 747
+NSString *const FUApplicationVersionDidChangeNotification = @"FUApplicationVersionDidChangeNotification";
 
 static NSString *const kFUApplicationLastVersionStringKey = @"FUApplicationLastVersionString";
 
 @interface FUApplication ()
-- (void)readInfoPlist;
-- (BOOL)setUpAppSupportDir;
-- (void)setUpUserthingDirs;
 - (BOOL)createDirAtPathIfDoesntExist:(NSString *)path;
-- (void)updateAppNameInMainMenu;
 - (void)checkForVersionChange;
 @end
 
 @implementation FUApplication
 
-+ (FUApplication *)instance {
-    return (FUApplication *)[self sharedApplication];
++ (id)instance {
+    return [self sharedApplication];
 }
 
 
 - (id)init {
     if (self = [super init]) {
-        [self readInfoPlist];
-        [self setUpAppSupportDir];
-        [self setUpUserthingDirs];
+        [self createAppSupportDir];
         
         NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
         [nc addObserver:self selector:@selector(applicationWillTerminate:) name:NSApplicationWillTerminateNotification object:self];
-        [nc addObserver:self selector:@selector(applicationWillResignActive:) name:NSApplicationWillResignActiveNotification object:self];
     }
     return self;
 }
@@ -74,7 +62,6 @@ static NSString *const kFUApplicationLastVersionStringKey = @"FUApplicationLastV
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     
     self.appName = nil;
-    self.versionString = nil;
     self.appSupportDirPath = nil;
     self.ssbSupportDirPath = nil;
     self.userscriptDirPath = nil;
@@ -85,23 +72,12 @@ static NSString *const kFUApplicationLastVersionStringKey = @"FUApplicationLastV
     self.downloadArchiveFilePath = nil;
     self.plugInPrivateDirPath = nil;
     self.plugInDirPath = nil;
-    self.plugInSupportDirPath = nil;
     [super dealloc];
-}
-
-
-- (void)awakeFromNib {
-    [self updateAppNameInMainMenu];
 }
 
 
 #pragma mark -
 #pragma mark Actions
-
-- (IBAction)showPreferencesPanel:(id)sender {
-    [[OAPreferenceController sharedPreferenceController] showPreferencesPanel:nil];
-}
-
 
 - (IBAction)showDownloadsWindow:(id)sender {
     [[FUDownloadWindowController instance] showWindow:sender];
@@ -110,16 +86,6 @@ static NSString *const kFUApplicationLastVersionStringKey = @"FUApplicationLastV
 
 - (IBAction)showBookmarksWindow:(id)sender {
     [[FUBookmarkWindowController instance] showWindow:sender];
-}
-
-
-- (IBAction)showUserscriptsWindow:(id)sender {
-    [[FUUserthingWindowController instance] showUserscripts:sender];
-}
-
-
-- (IBAction)showUserstylesWindow:(id)sender {
-    [[FUUserthingWindowController instance] showUserstyles:sender];
 }
 
 
@@ -132,8 +98,8 @@ static NSString *const kFUApplicationLastVersionStringKey = @"FUApplicationLastV
 - (IBAction)changeFont:(id)sender {
     NSWindow *win = [NSApp mainWindow];
     
-    BOOL prefWinIsMain = [NSStringFromClass([win class]) isEqualToString:@"OAPreferencesWindow"];
-    BOOL viewSourceWinIsMain = NO; //[win isKindOfClass:[TDSourceCodeTextView class]];
+    BOOL prefWinIsMain = [[win className] isEqualToString:@"OAPreferencesWindow"];
+    BOOL viewSourceWinIsMain = [win isKindOfClass:[TDSourceCodeTextView class]];
     
     if (prefWinIsMain) {
         OAPreferenceClient *client = [[OAPreferenceController sharedPreferenceController] currentClient];
@@ -155,69 +121,8 @@ static NSString *const kFUApplicationLastVersionStringKey = @"FUApplicationLastV
 }
 
 
-- (BOOL)isFluidSSB {
-    return fluidSSB;
-}
-
-
-- (void)showPreferencePaneForIdentifier:(NSString *)s {
-    [[OAPreferenceController sharedPreferenceController] showPreferencesPanel:self];
-    [[OAPreferenceController sharedPreferenceController] setCurrentClientRecord:[OAPreferenceController clientRecordWithIdentifier:s]];
-}
-
-
-- (NSString *)defaultUserAgentString {
-    return [[FUUserAgentWindowController instance] defaultUserAgentString];
-}
-
-
-- (NSArray *)allUserAgentStrings {
-    return [[FUUserAgentWindowController instance] allUserAgentStrings];
-}
-
-
-- (void)readInfoPlist {
-    NSDictionary *infoPlist = [[NSBundle mainBundle] infoDictionary];
-
-    // version
-    self.versionString = [infoPlist valueForKey:@"CFBundleVersion"];
-    
-    // appName
-    NSString *name = [infoPlist valueForKey:@"FUAppName"];
-    if ([name length]) {
-        fluidSSB = YES;
-    } else {
-        name = [infoPlist valueForKey:@"CFBundleName"];
-    }
-    self.appName = name;
-}
-
-
-- (void)updateAppNameInMainMenu {
-    NSMenu *appMenu = [[[self mainMenu] itemAtIndex:0] submenu];
-
-    if (appMenu) {        
-        NSArray *items = [appMenu itemArray];
-        NSMenuItem *aboutItem = [items objectAtIndex:[appMenu indexOfItemWithTag:ABOUT_ITEM_TAG]];
-        [aboutItem setTitle:[NSString stringWithFormat:NSLocalizedString(@"About %@", @""), appName]];
-        NSMenuItem *hideItem = [items objectAtIndex:[appMenu indexOfItemWithTag:HIDE_ITEM_TAG]];
-        [hideItem setTitle:[NSString stringWithFormat:NSLocalizedString(@"Hide %@", @""), appName]];
-        NSMenuItem *quitItem = [items objectAtIndex:[appMenu indexOfItemWithTag:QUIT_MENU_TAG]];
-        [quitItem setTitle:[NSString stringWithFormat:NSLocalizedString(@"Quit %@", @""), appName]];
-    }
-
-    NSMenu *helpMenu = [[[[self mainMenu] itemArray] lastObject] submenu];
-    if (helpMenu) {
-        NSArray *items = [helpMenu itemArray];
-        NSMenuItem *helpItem = [items lastObject];
-        [helpItem setTitle:[NSString stringWithFormat:NSLocalizedString(@"%@ Help", @""), appName]];
-    }
-}
-
-
-- (BOOL)setUpAppSupportDir {
-    NSString *dirName = fluidSSB ? @"Fluid" : appName;
-    NSArray *pathComps = [NSArray arrayWithObjects:@"~", @"Library", @"Application Support", dirName, nil];
+- (BOOL)createAppSupportDir {
+    NSArray *pathComps = [NSArray arrayWithObjects:@"~", @"Library", @"Application Support", @"Fluidium", nil];
     NSString *path = [[NSString pathWithComponents:pathComps] stringByExpandingTildeInPath];
     self.appSupportDirPath = path;
     self.plugInDirPath = [appSupportDirPath stringByAppendingPathComponent:@"PlugIns"];
@@ -226,21 +131,25 @@ static NSString *const kFUApplicationLastVersionStringKey = @"FUApplicationLastV
     BOOL success = [self createDirAtPathIfDoesntExist:appSupportDirPath];
     
     if (success) {
-        if (fluidSSB) {
-            path = [path stringByAppendingPathComponent:@"SSB"];
-            [self createDirAtPathIfDoesntExist:path];
-
-            path = [path stringByAppendingPathComponent:appName];
-            [self createDirAtPathIfDoesntExist:path];
-        }
+        path = [path stringByAppendingPathComponent:@"SSB"];
+        [self createDirAtPathIfDoesntExist:path];
         
+        path = [path stringByAppendingPathComponent:[[NSProcessInfo processInfo] processName]];
         self.ssbSupportDirPath = path;
+        [self createDirAtPathIfDoesntExist:ssbSupportDirPath];
+
+        path = [ssbSupportDirPath stringByAppendingPathComponent:@"Userscripts"];
+        self.userscriptDirPath = path;
+        [self createDirAtPathIfDoesntExist:userscriptDirPath];
+        self.userscriptFilePath = [[userscriptDirPath stringByAppendingPathComponent:@"Userscripts"] stringByAppendingPathExtension:@"plist"];
+        
+        path = [ssbSupportDirPath stringByAppendingPathComponent:@"Userstyles"];
+        self.userstyleDirPath = path;
+        [self createDirAtPathIfDoesntExist:userstyleDirPath];
+        self.userstyleFilePath = [[userstyleDirPath stringByAppendingPathComponent:@"Userstyles"] stringByAppendingPathExtension:@"plist"];
         
         self.downloadArchiveFilePath = [ssbSupportDirPath stringByAppendingPathComponent:@"DownloadArchive"];
         self.bookmarksFilePath = [ssbSupportDirPath stringByAppendingPathComponent:@"Bookmarks"];
-
-        self.plugInSupportDirPath = [ssbSupportDirPath stringByAppendingPathComponent:@"PlugIn Support"];
-        [self createDirAtPathIfDoesntExist:plugInSupportDirPath];
 
         path = [appSupportDirPath stringByAppendingPathComponent:@"IconDatabase"];
         success = [self createDirAtPathIfDoesntExist:path];
@@ -254,19 +163,6 @@ static NSString *const kFUApplicationLastVersionStringKey = @"FUApplicationLastV
 }
 
 
-- (void)setUpUserthingDirs {
-    NSString *contentsPath = [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"Contents"];
-
-    self.userscriptDirPath = [contentsPath stringByAppendingPathComponent:@"Userscripts"];
-    [self createDirAtPathIfDoesntExist:userscriptDirPath];
-    self.userscriptFilePath = [[userscriptDirPath stringByAppendingPathComponent:@"Userscripts"] stringByAppendingPathExtension:@"plist"];
-        
-    self.userstyleDirPath = [contentsPath stringByAppendingPathComponent:@"Userstyles"];
-    [self createDirAtPathIfDoesntExist:userstyleDirPath];
-    self.userstyleFilePath = [[userstyleDirPath stringByAppendingPathComponent:@"Userstyles"] stringByAppendingPathExtension:@"plist"];
-}
-
-
 - (BOOL)createDirAtPathIfDoesntExist:(NSString *)path {
     BOOL exists, isDir;
     exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDir];
@@ -277,7 +173,7 @@ static NSString *const kFUApplicationLastVersionStringKey = @"FUApplicationLastV
         NSError *err = nil;
         success = [[NSFileManager defaultManager] createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:&err];
         if (!success) {
-            NSLog(@"%@ could not create dir at path: %@: %@", [self appName], path, err);
+            NSLog(@"Fluidium.app could not create dir at path: %@: %@", path, err);
         }
     }
     
@@ -290,8 +186,9 @@ static NSString *const kFUApplicationLastVersionStringKey = @"FUApplicationLastV
 
 - (void)checkForVersionChange {
     NSString *lastVers = [[NSUserDefaults standardUserDefaults] stringForKey:kFUApplicationLastVersionStringKey];
-    if (![lastVers isEqualToString:versionString]) {
-        [[NSUserDefaults standardUserDefaults] setObject:versionString forKey:kFUApplicationLastVersionStringKey];
+    NSString *currVers = [[[NSBundle mainBundle] infoDictionary] valueForKey:@"CFBundleVersion"];
+    if (![lastVers isEqualToString:currVers]) {
+        [[NSUserDefaults standardUserDefaults] setObject:currVers forKey:kFUApplicationLastVersionStringKey];
         
         [[NSNotificationCenter defaultCenter] postNotificationName:FUApplicationVersionDidChangeNotification object:self];
     }    
@@ -304,9 +201,7 @@ static NSString *const kFUApplicationLastVersionStringKey = @"FUApplicationLastV
 - (void)finishLaunching {
     [super finishLaunching];
     
-    // instantiate singletons
     [FUWhitelistController instance];
-    [FUHandlerController instance];
     [FUUserstyleController instance];
     [FUBookmarkController instance];
     [FUHistoryController instance];
@@ -331,14 +226,7 @@ static NSString *const kFUApplicationLastVersionStringKey = @"FUApplicationLastV
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
-
-- (void)applicationWillResignActive:(NSNotification *)n {
-    [[FUHistoryController instance] save];
-    [[FUDocumentController instance] saveSession];
-}
-
 @synthesize appName;
-@synthesize versionString;
 @synthesize appSupportDirPath;
 @synthesize ssbSupportDirPath;
 @synthesize userscriptDirPath;
@@ -349,5 +237,4 @@ static NSString *const kFUApplicationLastVersionStringKey = @"FUApplicationLastV
 @synthesize downloadArchiveFilePath;
 @synthesize plugInPrivateDirPath;
 @synthesize plugInDirPath;
-@synthesize plugInSupportDirPath;
 @end

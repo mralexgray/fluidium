@@ -90,7 +90,7 @@
 }
 
 
-- (void)controlTextDidEndEditing:(NSNotification *)n {
+- (void)controlTextDidEndEditing:(NSNotification *)notification {
     [self storeShortcutsInUserDefaults];
 }
 

@@ -15,7 +15,7 @@
 #import "FUProgressComboBox.h"
 #import "HMImageComboBoxCell.h"
 #import "FURecentURLController.h"
-#import "WebIconDatabase.h"
+#import "WebKitPrivate.h"
 #import "WebIconDatabase+FUAdditions.h"
 
 #define MAX_VISIBLE_ITEMS 10
@@ -50,8 +50,14 @@
 }
 
 
-- (void)drawRect:(NSRect)dirtyRect {
-    [super drawRect:dirtyRect];
+//- (NSArray *)namesOfPromisedFilesDroppedAtDestination:(NSURL *)dest {
+//    NSString *title = [[[[self window] windowController] webView] mainFrameTitle];
+//    return [NSArray arrayWithObject:title];
+//}
+
+
+- (void)drawRect:(NSRect)inRect {
+    [super drawRect:inRect];
     
     NSRect bounds = [self bounds];
     NSSize size = bounds.size;
@@ -85,14 +91,11 @@
 
 
 - (void)showDefaultIcon {
-    [self setImage:[[WebIconDatabase sharedIconDatabase] defaultFavicon]];
+    [self setImage:[[WebIconDatabase sharedIconDatabase] FU_defaultFavicon]];
 }
 
 
 - (void)showPopUpWithItemCount:(NSInteger)count {
-    NSWindow *win = [self window];
-    if (![win isKeyWindow] || ![[win toolbar] isVisible]) return;
-    
     NSWindow *popUp = [(HMImageComboBoxCell *)[self cell] popUp];
     [popUp makeKeyAndOrderFront:self];
     [popUp setOpaque:NO];
@@ -112,7 +115,7 @@
     NSTableView *table = (NSTableView *)[popUp firstResponder];
     [table selectRowIndexes:[NSIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
     showingPopUp = YES;
-    firstKeyDownHasHappened = NO;
+    firstDownKeyStrokeHasHappened = NO;
 }
 
 
@@ -122,7 +125,7 @@
 - (void)hidePopUp {
     NSWindow *popUp = [(HMImageComboBoxCell *)self.cell popUp];
     [popUp orderOut:nil];
-    firstKeyDownHasHappened = NO;
+    firstDownKeyStrokeHasHappened = NO;
     showingPopUp = NO;
 }
 
@@ -146,8 +149,8 @@
     } else if (DOWN_ARROW == keyCode || UP_ARROW == keyCode) { // down arrow || up arrow
         NSTableView *table = (NSTableView *)[popUp firstResponder];
         NSInteger i = [table selectedRow];
-        if (DOWN_ARROW == keyCode && !firstKeyDownHasHappened) {
-            firstKeyDownHasHappened = YES;
+        if (DOWN_ARROW == keyCode && !firstDownKeyStrokeHasHappened) {
+            firstDownKeyStrokeHasHappened = YES;
             [table selectRowIndexes:[NSIndexSet indexSetWithIndex:++i] byExtendingSelection:NO];
         }
         

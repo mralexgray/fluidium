@@ -18,7 +18,7 @@
     NSImage *progressImage;
     CGFloat progress;
     BOOL showingPopUp;
-    BOOL firstKeyDownHasHappened;
+    BOOL firstDownKeyStrokeHasHappened;
 }
 
 - (void)showDefaultIcon;

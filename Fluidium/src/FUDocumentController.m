@@ -18,16 +18,14 @@
 #import "FUTabController.h"
 #import "FUUserDefaults.h"
 #import "FUWebView.h"
-#import "FUJavaScriptBridge.h"
-#import "FUJavaScriptMenuItem.h"
-#import "FUNotifications.h"
-#import "FUDownloadWindowController.h"
-
 #import <WebKit/WebKit.h>
-#import <Growl/Growl.h>
-#import <Sparkle/Sparkle.h>
 
 #define OPEN_NEW_TAB 0
+
+NSString *const FUTabBarShownDidChangeNotification = @"FUTabBarShownDidChangeNotification";
+NSString *const FUTabBarHiddenForSingleTabDidChangeNotification = @"FUTabBarHiddenForSingleTabDidChangeNotification";
+NSString *const FUBookmarkBarShownDidChangeNotification = @"FUBookmarkBarShownDidChangeNotification";
+NSString *const FUStatusBarShownDidChangeNotification = @"FUStatusBarShownDidChangeNotification";
 
 @interface FUDocumentController ()
 - (void)registerForAppleEventHandling;
@@ -35,22 +33,14 @@
 - (void)handleInternetOpenContentsEvent:(NSAppleEventDescriptor *)event replyEvent:(NSAppleEventDescriptor *)replyEvent;
 - (void)handleOpenContentsAppleEventWithURL:(NSString *)URLString;
 
+- (void)saveSession;
 - (void)restoreSession;
-- (void)checkForUpdates;
 @end
 
 @implementation FUDocumentController
 
-+ (FUDocumentController *)instance {
-    return (id)[[NSApplication sharedApplication] delegate];
-}
-
-
-- (id)init {
-    if (self = [super init]) {
-        [GrowlApplicationBridge setGrowlDelegate:(NSObject <GrowlApplicationBridgeDelegate>*)self];
-    }
-    return self;
++ (id)instance {
+    return [[NSApplication sharedApplication] delegate];
 }
 
 
@@ -61,7 +51,7 @@
 
 
 - (NSString *)defaultType {
-    return @"Web archive";
+    return @"HTML document";
 }
 
 
@@ -92,39 +82,9 @@
 }
 
 
-// support for opening a new window on ⌘-L when there are no existing windows
-- (IBAction)openLocation:(id)sender {
+// support for opening a new window on <cmd>-T when there are no existing windows
+- (IBAction)addNewTabInForeground:(id)sender {
     [self newDocument:sender];
-}
-
-
-// support for opening a new window on ⌘⎇-F when there are no existing windows
-- (IBAction)openSearch:(id)sender {
-    FUDocument *doc = [self openUntitledDocumentAndDisplay:YES error:nil];
-    if (doc) {
-        [[doc windowController] openSearch:sender];
-    }
-}
-
-
-// support for opening a new window on ⌘-T when there are no existing windows
-- (IBAction)newTab:(id)sender {
-    [self newDocument:sender];
-}
-
-
-- (IBAction)newBackgroundTab:(id)sender {
-    [self newDocument:sender];
-}
-
-
-// support for user JavaScript dock menu item callbacks
-- (IBAction)dockMenuItemClick:(id)sender {
-    FUTabController *tc = [self frontTabController];
-    if (tc) {
-        FUJavaScriptMenuItem *jsItem = [sender representedObject];        
-        [tc.javaScriptBridge dockMenuItemClick:jsItem];
-    }
 }
 
 
@@ -133,10 +93,7 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)n {
     [self registerForAppleEventHandling];
-	// Mital Vora.
-	// Do not restore session as not to navigate and / or open multiple tabs at all.
-    //[self restoreSession];
-    [self checkForUpdates];
+    [self restoreSession];
 }
 
 
@@ -147,43 +104,10 @@
 }
 
 
-- (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {
-	return YES;
-}
-
-
 - (void)applicationDidBecomeActive:(NSNotification *)n {
     if (hiddenWindow) {
         [hiddenWindow makeKeyAndOrderFront:self];
     }
-}
-
-- (id)openUntitledDocumentAndDisplay:(BOOL)displayDocument error:(NSError **)outError {
-    if (hiddenWindow) {
-        [hiddenWindow makeKeyAndOrderFront:self];
-		NSWindow *orig_hiddenWindow = hiddenWindow;
-		hiddenWindow = nil;
-		return orig_hiddenWindow;
-    }
-	return [super openUntitledDocumentAndDisplay:displayDocument error:outError];
-}
-
-- (NSMenu *)applicationDockMenu:(NSApplication *)app {
-    NSArray *jsItems = [[[self frontTabController] javaScriptBridge] dockMenuItems];
-    if (![jsItems count]) return nil;
-        
-    NSMenu *menu = [[[NSMenu alloc] init] autorelease];
-    
-    for (FUJavaScriptMenuItem *jsItem in jsItems) {
-        NSMenuItem *menuItem = [[[NSMenuItem alloc] initWithTitle:jsItem.title
-                                                           action:@selector(dockMenuItemClick:)
-                                                    keyEquivalent:@""] autorelease];
-        [menuItem setTarget:self];
-        [menuItem setRepresentedObject:jsItem];
-        [menu addItem:menuItem];
-    }
-    
-    return menu;
 }
 
 
@@ -203,12 +127,12 @@
         }
         
         BOOL onlyOneTab = (1 == [[[self frontWindowController] tabControllers] count]);
-        if (onlyOneTab) {
-            BOOL hideForSingleTab = [[FUUserDefaults instance] tabBarHiddenForSingleTab];
-            return !hideForSingleTab;
-        } else {
+        if (!onlyOneTab) {
             return tabbedBrowsingEnabled;
         }
+        
+        BOOL hideForSingleTab = [[FUUserDefaults instance] tabBarHiddenForSingleTab];
+        return !hideForSingleTab;
 
     } else if (@selector(toggleBookmarkBarShown:) == action) {
         BOOL shown = [[FUUserDefaults instance] bookmarkBarShown];
@@ -226,17 +150,9 @@
 
 
 #pragma mark -
-#pragma mark GrowBridgeDelegate
-
-- (void)growlNotificationWasClicked:(id)clickContext {
-    
-}
-
-
-#pragma mark -
 #pragma mark Public
 
-- (FUDocument *)openDocumentWithURL:(NSString *)s makeKey:(BOOL)makeKey; {
+- (FUDocument *)openDocumentWithRequest:(NSURLRequest *)req makeKey:(BOOL)makeKey {
     FUDocument *oldDoc = [self frontDocument];
     FUDocument *newDoc = [self openUntitledDocumentAndDisplay:makeKey error:nil];
     
@@ -251,41 +167,65 @@
         
     }
     
-    if ([s length]) {
-        FUTabController *tc = [[newDoc windowController] selectedTabController];
-        [tc loadURL:s];
+    if (req) {
+        FUWebView *webView = [[[newDoc windowController] selectedTabController] webView];
+        [[webView mainFrame] loadRequest:req];
     }
     
     return newDoc;
 }
 
 
-- (FUTabController *)loadURL:(NSString *)s {
-    return [self loadURL:s destinationType:[[FUUserDefaults instance] tabbedBrowsingEnabled] ? FUDestinationTypeTab : FUDestinationTypeWindow];
+- (FUTabController *)loadRequest:(NSURLRequest *)req {
+    return [self loadRequest:req destinationType:[[FUUserDefaults instance] tabbedBrowsingEnabled] ? FUDestinationTypeTab : FUDestinationTypeWindow];
 }
 
 
-- (FUTabController *)loadURL:(NSString *)s destinationType:(FUDestinationType)type {
-    return [self loadURL:s destinationType:type inForeground:[[FUUserDefaults instance] selectNewWindowsOrTabsAsCreated]];
+- (FUTabController *)loadRequest:(NSURLRequest *)req destinationType:(FUDestinationType)type {
+    return [self loadRequest:req destinationType:type inForeground:[[FUUserDefaults instance] selectNewWindowsOrTabsAsCreated]];
 }
 
 
-- (FUTabController *)loadURL:(NSString *)s destinationType:(FUDestinationType)type inForeground:(BOOL)inForeground {
+- (FUTabController *)loadRequest:(NSURLRequest *)req destinationType:(FUDestinationType)type inForeground:(BOOL)inForeground {
     FUTabController *tc = nil;
-    if (![[self documents] count] || FUDestinationTypeWindow == type) {
-        FUDocument *doc = [self openDocumentWithURL:s makeKey:inForeground];
+    if (FUDestinationTypeWindow == type) {
+        FUDocument *doc = [self openDocumentWithRequest:req makeKey:inForeground];
         tc = [[doc windowController] selectedTabController];
     } else {
         FUWindowController *wc = [self frontWindowController];
-        tc = [wc loadURL:s inNewTabAndSelect:inForeground];
-        [[wc window] makeKeyAndOrderFront:self]; // this is necessary if opening in a tab, and an auxilliary window is key
+        tc = [wc loadRequest:req inNewTabInForeground:inForeground];
     }
     return tc;
 }
 
 
-- (void)downloadRequest:(NSURLRequest *)req directory:(NSString *)dirPath filename:(NSString *)filename {
-    [[FUDownloadWindowController instance] downloadRequest:req directory:dirPath filename:filename];
+- (FUTabController *)loadHTMLString:(NSString *)s {
+    return [self loadHTMLString:s destinationType:[[FUUserDefaults instance] tabbedBrowsingEnabled] ? FUDestinationTypeTab : FUDestinationTypeWindow];
+}
+
+
+- (FUTabController *)loadHTMLString:(NSString *)s destinationType:(FUDestinationType)type {
+    return [self loadHTMLString:s destinationType:type inForeground:[[FUUserDefaults instance] selectNewWindowsOrTabsAsCreated]];
+}
+
+
+- (FUTabController *)loadHTMLString:(NSString *)s destinationType:(FUDestinationType)type inForeground:(BOOL)inForeground {
+    FUTabController *tc = nil;
+    if (FUDestinationTypeWindow == type) {
+        FUDocument *doc = [self openDocumentWithRequest:nil makeKey:inForeground];
+        tc = [[doc windowController] selectedTabController];
+        [[[tc webView] mainFrame] loadHTMLString:s baseURL:nil];
+    } else {
+        FUWindowController *wc = [self frontWindowController];
+        if (inForeground) {
+            [wc addNewTabInForeground:self];
+        } else {
+            [wc addNewTabInBackground:self];
+        }
+        tc = [wc selectedTabController];
+        [[[tc webView] mainFrame] loadHTMLString:s baseURL:nil];
+    }
+    return tc;
 }
 
 
@@ -310,16 +250,7 @@
 
 
 - (FUDocument *)frontDocument {
-    // despite what the docs say, -currentDocument does not return a document if it is main but not key. dont trust it. :(
-    //return (FUDocument *)[self currentDocument];
-
-    for (NSWindow *win in [NSApp orderedWindows]) {
-        NSDocument *doc = [self documentForWindow:win];
-        if (doc && [doc isKindOfClass:[FUDocument class]]) {
-            return (FUDocument *)doc;
-        }
-    }
-    return nil;
+    return (FUDocument *)[self currentDocument];
 }
 
 
@@ -361,21 +292,18 @@
 
 
 - (void)handleOpenContentsAppleEventWithURL:(NSString *)URLString {
-    FUDestinationType type = FUDestinationTypeWindow;
-
     FUWindowController *wc = [self frontWindowController];
-    if (wc) {
-        NSWindow *window = [wc window];
-        if ([window isMiniaturized]) {
-            [window deminiaturize:self];
-        }
-
-        if ([[FUUserDefaults instance] tabbedBrowsingEnabled]) {
-            type = [[FUUserDefaults instance] openLinksFromApplicationsIn];
-        }
+    NSWindow *window = [wc window];
+    if ([window isMiniaturized]) {
+        [window deminiaturize:self];
     }
-
-    [self loadURL:URLString destinationType:type inForeground:YES];
+    
+    NSURLRequest *req = [NSURLRequest requestWithURL:[NSURL URLWithString:URLString]];
+    FUDestinationType type = [[FUUserDefaults instance] openLinksFromApplicationsIn];
+    if (![[FUUserDefaults instance] tabbedBrowsingEnabled]) {
+        type = FUDestinationTypeWindow;
+    }
+    [self loadRequest:req destinationType:type inForeground:YES];
 }
 
 
@@ -425,18 +353,10 @@
         NSArray *tabs = [d objectForKey:@"tabs"];
         
         for (NSString *URLString in tabs) {
-            [wc loadURL:URLString inNewTabAndSelect:YES];
+            [wc loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:URLString]] inNewTabInForeground:YES];
         }
         
         wc.selectedTabIndex = [[d objectForKey:@"selectedTabIndex"] integerValue];
-    }
-}
-
-
-- (void)checkForUpdates {
-    SUUpdater *updater = [SUUpdater sharedUpdater];
-    if ([updater automaticallyChecksForUpdates]) {
-        [updater checkForUpdatesInBackground];
     }
 }
 

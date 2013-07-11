@@ -42,12 +42,12 @@
     
     [plugInManager hidePlugInWrapperInAllWindows:plugInWrapper];
     
-    NSInteger oldMask = plugInWrapper.viewPlacementMask;
+    NSInteger oldMask = plugInWrapper.currentViewPlacementMask;
     if (FUPlugInViewPlacementIsPanel(oldMask)) {
         [plugInManager.windowsForPlugInIdentifier removeObjectForKey:plugInWrapper.identifier];
     }
     
-    plugInWrapper.viewPlacementMask = mask;
+    plugInWrapper.currentViewPlacementMask = mask;
     [plugInManager toggleVisibilityOfPlugInWrapper:plugInWrapper];
 }
 
@@ -62,7 +62,7 @@
 
 
 - (void)updatePopUpMenu {
-    NSInteger mask = plugInWrapper.viewPlacementMask;
+    NSInteger mask = plugInWrapper.currentViewPlacementMask;
     NSInteger tag;
     
     for (tag = 1; tag < 10; tag++) {
@@ -87,7 +87,7 @@
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
     NSInteger tag = [menuItem tag];
-    NSUInteger mask = plugInWrapper.allowedViewPlacement;
+    NSUInteger mask = plugInWrapper.allowedViewPlacementMask;
 
 //    NSLog(@"tag %d, mask: %d, result:%d", tag, mask, (mask&(1 << tag)));
     return ((NSInteger)(mask & (1 << tag))) > 0;

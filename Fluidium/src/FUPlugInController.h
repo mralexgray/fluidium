@@ -17,30 +17,27 @@
 @class FUPlugInWrapper;
 @protocol FUPlugInAPI;
 
-@interface FUPlugInController : NSObject 
-#if FU_BUILD_TARGET_SNOW_LEOPARD
-<NSDrawerDelegate, NSWindowDelegate>
-#endif
-{
+@interface FUPlugInController : NSObject {
     NSMenu *plugInMenu;
     NSMutableDictionary *windowsForPlugInIdentifier;
     id <FUPlugInAPI>plugInAPI;
-    NSMutableDictionary *allPlugInWrappersTable;
+    NSMutableArray *plugInWrappers;
+    NSMutableArray *allPlugInIdentifiers;
     BOOL plugInsLoaded;
 }
 
-+ (FUPlugInController *)instance;
++ (id)instance;
 
 - (void)plugInAboutMenuItemAction:(id)sender;
 - (void)plugInMenuItemAction:(id)sender;
 
 - (void)loadPlugIns;
-- (void)setUpMenuItemsForPlugIns;
+- (void)createMenuItemsForPlugIns;
 - (void)toggleVisibilityOfPlugInWrapper:(FUPlugInWrapper *)wrap;
 - (void)toggleVisibilityOfPlugInWrapper:(FUPlugInWrapper *)wrap inWindow:(NSWindow *)window;
 
 - (void)showPlugInWrapper:(FUPlugInWrapper *)wrap inWindow:(NSWindow *)window;
-- (void)hidePlugInWrapperWithViewPlacementMask:(FUPlugInViewPlacement)mask inWindow:(NSWindow *)window;
+- (void)hidePlugInWrapperWithViewPlacementMask:(FUPlugInViewPlacementMask)mask inWindow:(NSWindow *)window;
 - (void)hidePlugInWrapperInAllWindows:(FUPlugInWrapper *)wrap;
 
 - (NSArray *)visiblePlugInWrappers;
@@ -49,7 +46,7 @@
 
 @property (nonatomic, retain) NSMenu *plugInMenu;
 @property (nonatomic, retain) id <FUPlugInAPI>plugInAPI;
-@property (nonatomic, readonly, retain) NSArray *plugInWrappers;
-@property (nonatomic, readonly, retain) NSArray *allPlugInIdentifiers;
+@property (nonatomic, retain) NSMutableArray *plugInWrappers;
+@property (nonatomic, retain) NSMutableArray *allPlugInIdentifiers;
 @property (nonatomic, retain) NSMutableDictionary *windowsForPlugInIdentifier;
 @end

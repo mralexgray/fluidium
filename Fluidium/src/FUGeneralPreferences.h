@@ -17,11 +17,7 @@
 @class SRRecorderControl;
 @class PTHotKey;
 
-@interface FUGeneralPreferences : FUBasePreferences
-#if FU_BUILD_TARGET_SNOW_LEOPARD
-<NSMenuDelegate>
-#endif
-{
+@interface FUGeneralPreferences : FUBasePreferences {
     NSTextField *homeURLStringTextField;
     SRRecorderControl *recorderControl;
     NSPopUpButton *downloadFolderPopUpButton;

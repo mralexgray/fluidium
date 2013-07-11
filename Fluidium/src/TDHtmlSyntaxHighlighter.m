@@ -72,7 +72,8 @@
 
 
 - (id)initWithAttributesForDarkBackground:(BOOL)isDark {
-    if (self = [super init]) {
+    self = [super init];
+    if (self) {
         isDarkBG = isDark;
         self.tokenizer = [PKTokenizer tokenizer];
         

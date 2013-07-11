@@ -13,8 +13,8 @@
 //  limitations under the License.
 
 #import "FUViewSourceWindowController.h"
+#import "TDSourceCodeTextView.h"
 #import "TDHtmlSyntaxHighlighter.h"
-#import <TDAppKit/TDSourceCodeTextView.h>
 
 @interface FUViewSourceWindowController ()
 @end
@@ -22,7 +22,8 @@
 @implementation FUViewSourceWindowController
 
 - (id)init {
-    if (self = [super initWithWindowNibName:@"FUViewSourceWindow"]) {
+    self = [super initWithWindowNibName:@"FUViewSourceWindow"];
+    if (self != nil) {
         self.monacoFont = [NSFont fontWithName:@"Monaco" size:11];
         self.highlighter = [[[TDHtmlSyntaxHighlighter alloc] initWithAttributesForDarkBackground:YES] autorelease];
     }
@@ -49,7 +50,7 @@
 }
 
 
-- (IBAction)newTab:(id)sender {
+- (IBAction)addNewTabInForeground:(id)sender {
     [self runFontPanel:sender];
 }
 
@@ -67,7 +68,7 @@
 }
 
 
-- (IBAction)showFindPanel:(id)sender {
+- (IBAction)showFindPanelAction:(id)sender {
     [sourceTextView performFindPanelAction:sender];
 }
 

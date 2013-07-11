@@ -13,34 +13,29 @@
 //  limitations under the License.
 
 #import "FUPlugInAPIImpl.h"
-#import "FUPlugInController.h"
 #import "FUWindowController.h"
 #import "FUDocumentController.h"
 #import "FUTabController.h"
 #import "FUApplication.h"
-#import "FURecentURLController.h"
-#import "FUDownloadWindowController.h"
-#import "FUUserAgentWindowController.h"
-#import "FUWindow.h"
-#import "FUWebView.h"
 #import "FUPlugInWrapper.h"
 #import "FUPlugInAPI.h"
+#import <OmniAppKit/OAPreferenceController.h>
 #import <WebKit/WebKit.h>
 
 @interface FUPlugInAPIImpl ()
-- (FUWindowController *)windowControllerForWindow:(NSWindow *)win;
-
 @property (nonatomic, copy, readwrite) NSString *version;
 @property (nonatomic, copy, readwrite) NSString *plugInSupportDirPath;
 @end
 
 @implementation FUPlugInAPIImpl
 
+
 - (id)init {
-    if (self = [super init]) {
+    self = [super init];
+    if (self != nil) {
         self.version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
         self.plugInSupportDirPath = [[[FUApplication instance] ssbSupportDirPath] stringByAppendingPathComponent:@"PlugIn Support"];
-        [[NSFileManager defaultManager] createDirectoryAtPath:plugInSupportDirPath withIntermediateDirectories:YES attributes:nil error:nil];
+        [[NSFileManager defaultManager] createDirectoryAtPath:plugInSupportDirPath attributes:nil];
     }
     return self;
 }
@@ -53,90 +48,29 @@
 }
 
 
-- (NSString *)appName {
-    return [[FUApplication instance] appName];
-}
-
-
-- (NSString *)defaultUserAgentString {
-    return [[FUUserAgentWindowController instance] defaultUserAgentString];
-}
-
-
-- (NSArray *)allUserAgentStrings {
-    return [[FUUserAgentWindowController instance] allUserAgentStrings];
-}
-
-
-- (NSUInteger)viewPlacementForPlugInIdentifier:(NSString *)s {
-    FUPlugInWrapper *wrap = [[FUPlugInController instance] plugInWrapperForIdentifier:s];
-    return [wrap viewPlacementMask];
-}
-
-
-- (NSViewController *)plugInViewControllerForPlugInIdentifier:(NSString *)s inWindow:(NSWindow *)win {
-    FUPlugInWrapper *wrap = [[FUPlugInController instance] plugInWrapperForIdentifier:s];
-    return [wrap plugInViewControllerForWindowNumber:[win windowNumber]];
-}
-
-
-- (BOOL)isFullScreen {
-    return [[FUApplication instance] isFullScreen];
-}
-
-
 - (WebView *)frontWebView {
     return [[FUDocumentController instance] frontWebView];
 }
 
 
-- (WebView *)selectedWebViewForWindow:(NSWindow *)win {
-    if (![win isKindOfClass:[FUWindow class]]) {
-        return nil;
+- (NSArray *)webViews {
+    FUWindowController *wc = [[FUDocumentController instance] frontWindowController];
+    NSSet *tabControllers = wc.tabControllers;
+    NSMutableArray *webViews = [NSMutableArray arrayWithCapacity:[tabControllers count]];
+    for (FUTabController *tc in tabControllers) {
+        [webViews addObject:[tc webView]];
     }
-    
-    FUWindowController *wc = [self windowControllerForWindow:win];
-    return [[wc selectedTabController] webView];
+    return webViews;
 }
 
 
-- (NSArray *)webViewsForWindow:(NSWindow *)win {
-    if (![win isKindOfClass:[FUWindow class]]) {
-        return nil;
-    }
-
-    return [[self windowControllerForWindow:win] webViews];
+- (void)loadRequest:(NSURLRequest *)req destinationType:(FUPlugInDestinationType)type inForeground:(BOOL)inForeground {
+    [(FUDocumentController *)[FUDocumentController instance] loadRequest:req destinationType:type inForeground:inForeground];
 }
 
 
-- (NSArray *)webViewsForDrawer:(NSDrawer *)drawer {
-    NSWindow *win = [drawer parentWindow];
-    return [self webViewsForWindow:win];
-}
-
-
-- (WebView *)newWebViewForPlugIn:(FUPlugIn *)plugIn {
-    return [[FUWebView alloc] initWithFrame:NSZeroRect];
-}
-
-
-- (void)loadURL:(NSString *)URLString {
-    [[FUDocumentController instance] loadURL:URLString];
-}
-
-
-- (void)loadURL:(NSString *)URLString destinationType:(FUPlugInDestinationType)type {
-    [[FUDocumentController instance] loadURL:URLString destinationType:type];
-}
-
-
-- (void)loadURL:(NSString *)URLString destinationType:(FUPlugInDestinationType)type inForeground:(BOOL)inForeground {
-    [[FUDocumentController instance] loadURL:URLString destinationType:type inForeground:inForeground];
-}
-
-
-- (void)downloadRequest:(NSURLRequest *)req directory:(NSString *)dirPath filename:(NSString *)filename {
-    [[FUDownloadWindowController instance] downloadRequest:req directory:dirPath filename:filename];
+- (void)loadHTMLString:(NSString *)htmlString destinationType:(FUPlugInDestinationType)type inForeground:(BOOL)inForeground {
+    [(FUDocumentController *)[FUDocumentController instance] loadHTMLString:htmlString destinationType:type inForeground:inForeground];
 }
 
 
@@ -145,55 +79,9 @@
 }
 
 
-- (void)addRecentURL:(NSString *)URLString {
-    [[FURecentURLController instance] addRecentURL:URLString];
-}
-
-
-- (void)addMatchingRecentURL:(NSString *)URLString {
-    [[FURecentURLController instance] addMatchingRecentURL:URLString];
-}
-
-
-- (void)removeRecentURL:(NSString *)URLString {
-    [[FURecentURLController instance] removeRecentURL:URLString];
-}
-
-
-- (NSArray *)recentURLs {
-    return [[FURecentURLController instance] recentURLs];
-}
-
-
-- (NSArray *)matchingRecentURLs {
-    return [[FURecentURLController instance] matchingRecentURLs];
-}
-
-
-- (void)resetRecentURLs {
-    [[FURecentURLController instance] resetRecentURLs];
-}
-
-
-- (void)resetMatchingRecentURLs {
-    [[FURecentURLController instance] resetMatchingRecentURLs];
-}
-
-
 - (void)showPreferencePaneForIdentifier:(NSString *)s {
-    [[FUApplication instance] showPreferencePaneForIdentifier:s];
-}
-
-
-#pragma mark -
-#pragma mark Private
-
-- (FUWindowController *)windowControllerForWindow:(NSWindow *)win {
-    if ([win isKindOfClass:[FUWindow class]]) {
-        return [win windowController];
-    } else {
-        return [[FUDocumentController instance] frontWindowController];
-    }
+    [[OAPreferenceController sharedPreferenceController] showPreferencesPanel:self];
+    [[OAPreferenceController sharedPreferenceController] setCurrentClientRecord:[OAPreferenceController clientRecordWithIdentifier:s]];
 }
 
 @synthesize version;

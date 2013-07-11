@@ -14,8 +14,6 @@
 
 #import "FUAppearancePreferences.h"
 #import "FUWebPreferences.h"
-#import "FUNotifications.h"
-#import "FUApplication.h"
 #import <WebKit/WebKit.h>
 
 @implementation FUAppearancePreferences
@@ -26,74 +24,6 @@
     [super dealloc];
 }
 
-
-- (IBAction)windowLevelChange:(id)sender {
-	[[NSNotificationCenter defaultCenter] postNotificationName:FUWindowLevelDidChangeNotification object:nil];
-}
-
-
-- (IBAction)windowOpacityChange:(id)sender {
-	[[NSNotificationCenter defaultCenter] postNotificationName:FUWindowOpacityDidChangeNotification object:nil];
-}
-
-
-- (IBAction)windowsHaveShadowChange:(id)sender {
-	[[NSNotificationCenter defaultCenter] postNotificationName:FUWindowsHaveShadowDidChangeNotification object:nil];
-}
-
-
-- (IBAction)toggleSetLoadsImagesAutomatically:(id)sender {
-    [[FUWebPreferences instance] setLoadsImagesAutomatically:[[FUWebPreferences instance] loadsImagesAutomatically]];
-    
-    [[FUWebPreferences instance] postDidChangeNotification];
-    self.defaultsHaveChanged = YES;
-}
-
-
-- (IBAction)changeFont:(id)sender {    
-    NSFont *oldFont = selectingStandard ? [self standardFont] : [self fixedWidthFont];
-    NSFont *newFont = [sender convertFont:oldFont];
-    
-    //    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-    
-    if (selectingStandard) {
-        [self willChangeValueForKey:@"standardFontDisplayString"];
-        [self willChangeValueForKey:@"standardFont"];
-        //        [userDefaults setObject:[newFont familyName] forKey:kFUStandardFontFamily];
-        //        [userDefaults setFloat:[newFont pointSize] forKey:kFUStandardFontSize];
-        [[FUWebPreferences instance] setStandardFontFamily:[newFont familyName]];
-        [[FUWebPreferences instance] setDefaultFontSize:[newFont pointSize]];
-        [self didChangeValueForKey:@"standardFontDisplayString"];
-        [self didChangeValueForKey:@"standardFont"];
-    } else {
-        [self willChangeValueForKey:@"fixedWidthFontDisplayString"];
-        [self willChangeValueForKey:@"fixedWidthFont"];
-        //        [userDefaults setObject:[newFont familyName] forKey:kFUFixedWidthFontFamily];
-        //        [userDefaults setFloat:[newFont pointSize] forKey:kFUFixedWidthFontSize];
-        [[FUWebPreferences instance] setFixedFontFamily:[newFont familyName]];
-        [[FUWebPreferences instance] setDefaultFixedFontSize:[newFont pointSize]];
-        [self didChangeValueForKey:@"fixedWidthFontDisplayString"];
-        [self didChangeValueForKey:@"fixedWidthFont"];
-    }
-    
-    [[FUWebPreferences instance] postDidChangeNotification];
-    self.defaultsHaveChanged = YES;
-}
-
-
-- (IBAction)runFontPanel:(id)sender {
-    selectingStandard = [sender tag];
-    
-    NSFont *font = selectingStandard ? [self standardFont] : [self fixedWidthFont];
-    
-    [[NSFontManager sharedFontManager] setSelectedFont:font isMultiple:NO];
-    NSFontPanel *fontPanel = [[NSFontManager sharedFontManager] fontPanel:YES];
-    [fontPanel orderFront:self];
-}
-
-
-#pragma mark -
-#pragma mark Private
 
 - (void)updateUI {
 //    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -126,11 +56,14 @@
 }
 
 
-#pragma mark -
-#pragma mark Properties
+- (IBAction)runFontPanel:(id)sender {
+    selectingStandard = [sender tag];
+    
+    NSFont *font = selectingStandard ? [self standardFont] : [self fixedWidthFont];
 
-- (BOOL)windowLevelsEnabled {
-    return ![[FUApplication instance] isFullScreen];
+    [[NSFontManager sharedFontManager] setSelectedFont:font isMultiple:NO];
+    NSFontPanel *fontPanel = [[NSFontManager sharedFontManager] fontPanel:YES];
+    [fontPanel orderFront:self];
 }
 
 
@@ -145,6 +78,45 @@
     NSString *fontFamily = [[FUWebPreferences instance] fixedFontFamily];
     CGFloat fontSize = [[FUWebPreferences instance] defaultFixedFontSize];
     return [NSFont fontWithName:fontFamily size:fontSize];    
+}
+
+
+- (void)changeFont:(id)sender {    
+    NSFont *oldFont = selectingStandard ? [self standardFont] : [self fixedWidthFont];
+    NSFont *newFont = [sender convertFont:oldFont];
+
+    //    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    
+    if (selectingStandard) {
+        [self willChangeValueForKey:@"standardFontDisplayString"];
+        [self willChangeValueForKey:@"standardFont"];
+//        [userDefaults setObject:[newFont familyName] forKey:kFUStandardFontFamily];
+//        [userDefaults setFloat:[newFont pointSize] forKey:kFUStandardFontSize];
+        [[FUWebPreferences instance] setStandardFontFamily:[newFont familyName]];
+        [[FUWebPreferences instance] setDefaultFontSize:[newFont pointSize]];
+        [self didChangeValueForKey:@"standardFontDisplayString"];
+        [self didChangeValueForKey:@"standardFont"];
+    } else {
+        [self willChangeValueForKey:@"fixedWidthFontDisplayString"];
+        [self willChangeValueForKey:@"fixedWidthFont"];
+//        [userDefaults setObject:[newFont familyName] forKey:kFUFixedWidthFontFamily];
+//        [userDefaults setFloat:[newFont pointSize] forKey:kFUFixedWidthFontSize];
+        [[FUWebPreferences instance] setFixedFontFamily:[newFont familyName]];
+        [[FUWebPreferences instance] setDefaultFixedFontSize:[newFont pointSize]];
+        [self didChangeValueForKey:@"fixedWidthFontDisplayString"];
+        [self didChangeValueForKey:@"fixedWidthFont"];
+    }
+    
+    [[FUWebPreferences instance] postDidChangeNotification];
+    self.defaultsHaveChanged = YES;
+}
+
+
+- (IBAction)toggleSetLoadsImagesAutomatically:(id)sender {
+    [[FUWebPreferences instance] setLoadsImagesAutomatically:[[FUWebPreferences instance] loadsImagesAutomatically]];
+
+    [[FUWebPreferences instance] postDidChangeNotification];
+    self.defaultsHaveChanged = YES;
 }
 
 @synthesize standardFontTextField;

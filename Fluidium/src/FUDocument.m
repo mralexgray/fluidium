@@ -14,12 +14,7 @@
 
 #import "FUDocument.h"
 #import "FUWindowController.h"
-#import "FUTabController.h"
-#import "FUWebView.h"
 #import <WebKit/WebKit.h>
-
-#define WEB_ARCHIVE_TYPENAME @"Web archive"
-#define HTML_DOC_TYPENAME @"HTML document"
 
 @interface FUDocument ()
 - (void)webPrintOperationDidRun:(NSPrintOperation *)op success:(BOOL)success contextInfo:(id)dv;
@@ -28,24 +23,10 @@
 @implementation FUDocument
 
 - (void)dealloc {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
     self.windowController = nil;
     [super dealloc];
 }
 
-
-- (NSString *)description {
-    return [NSString stringWithFormat:@"<FUDocument %p %@>", self, [[windowController window] title]];
-}
-
-
-- (void)windowControllerDidShowVisiblePlugIns:(FUWindowController *)wc {
-    
-}
-
-
-#pragma mark -
-#pragma mark NSDocument
 
 - (void)makeWindowControllers {
     self.windowController = [[[FUWindowController alloc] init] autorelease];
@@ -58,53 +39,22 @@
 }
 
 
-//- (BOOL)readFromURL:(NSURL *)absoluteURL ofType:(NSString *)typeName error:(NSError **)outErr {
-//    if ([typeName isEqualToString:@"webarchive"]) {
-//        NSData *data = [NSData dataWithContentsOfURL:absoluteURL];
-//        WebArchive *archive = [[[WebArchive alloc] initWithData:data] autorelease];
-//        [[[[[self windowController] selectedTabController] webView] mainFrame] loadArchive:archive];
-//        return YES;
-//    } else {
-//        return [super readFromURL:absoluteURL ofType:typeName error:outErr];
-//    }
-//}
-//
-//
-//- (BOOL)writeToURL:(NSURL *)absoluteURL ofType:(NSString *)typeName error:(NSError **)outErr {
-//    if ([typeName isEqualToString:@"webarchive"]) {
-//        NSData *archiveData = [[[[[[windowController selectedTabController] webView] mainFrame] dataSource] webArchive] data];
-//    
-//        return [archiveData writeToURL:absoluteURL options:0 error:outErr];
-//    } else {
-//        return [super writeToURL:absoluteURL ofType:typeName error:outErr];
-//    }
-//}
-
-
-- (BOOL)readFromData:(NSData *)data ofType:(NSString *)typeName error:(NSError **)outErr {
-    if ([typeName isEqualToString:WEB_ARCHIVE_TYPENAME]) {
+- (BOOL)readFromURL:(NSURL *)absoluteURL ofType:(NSString *)typeName error:(NSError **)outError {        
+    if ([typeName isEqualToString:@"webarchive"]) {
+        NSData *data = [NSData dataWithContentsOfURL:absoluteURL];
         WebArchive *archive = [[[WebArchive alloc] initWithData:data] autorelease];
         [[[[[self windowController] selectedTabController] webView] mainFrame] loadArchive:archive];
         return YES;
-    } else if ([typeName isEqualToString:HTML_DOC_TYPENAME]) {
-        [[[[[self windowController] selectedTabController] webView] mainFrame] loadData:data MIMEType:@"text/html" textEncodingName:nil baseURL:nil];
-        return YES;
     } else {
-        return [super readFromData:data ofType:typeName error:outErr];
+        return [super readFromURL:absoluteURL ofType:typeName error:outError];
     }
 }
 
 
-- (NSData *)dataOfType:(NSString *)typeName error:(NSError **)outErr {
-    if ([typeName isEqualToString:WEB_ARCHIVE_TYPENAME]) {
-        NSData *archiveData = [[[[[[windowController selectedTabController] webView] mainFrame] dataSource] webArchive] data];
-        return archiveData;
-    } else if ([typeName isEqualToString:HTML_DOC_TYPENAME]) {
-        NSData *HTMLData = [[[[[[[windowController selectedTabController] webView] mainFrame] dataSource] representation] documentSource] dataUsingEncoding:NSUTF8StringEncoding];
-        return HTMLData;
-    } else {
-        return [super dataOfType:typeName error:outErr];
-    }
+- (BOOL)writeToURL:(NSURL *)absoluteURL ofType:(NSString *)typeName error:(NSError **)outError {
+    NSData *archiveData = [[[[[[windowController selectedTabController] webView] mainFrame] dataSource] webArchive] data];
+    
+    return [archiveData writeToURL:absoluteURL options:0 error:outError];
 }
 
 
@@ -131,7 +81,7 @@
     //    BOOL printBg = [preferences shouldPrintBackgrounds];
     
     NSPrintOperation *op = [NSPrintOperation printOperationWithView:dv printInfo:printInfo];
-    [op setShowsPrintPanel:show];
+    [op setShowPanels:show];
     [op runOperationModalForWindow:[wv window]
                           delegate:self 
                     didRunSelector:@selector(webPrintOperationDidRun:success:contextInfo:) 

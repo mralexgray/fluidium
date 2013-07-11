@@ -18,10 +18,9 @@
 #import "FUWindowController.h"
 #import "FUUserDefaults.h"
 #import "FUApplication.h"
-#import "FUNotifications.h"
 #import "FUIconController.h"
-#import "OAPreferenceController.h"
 #import <WebKit/WebKit.h>
+#import <OmniAppKit/OmniAppKit.h>
 #import <ShortcutRecorder/ShortcutRecorder.h>
 
 #define NUM_MENU_ITEMS 3
@@ -35,8 +34,6 @@
 @implementation FUGeneralPreferences
 
 - (void)dealloc {
-    [NSObject cancelPreviousPerformRequestsWithTarget:self];
-
     self.homeURLStringTextField = nil;
     self.recorderControl = nil;
     self.downloadFolderPopUpButton = nil;

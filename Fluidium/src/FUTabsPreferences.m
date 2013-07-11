@@ -13,11 +13,16 @@
 //  limitations under the License.
 
 #import "FUTabsPreferences.h"
-#import "FUNotifications.h"
+#import "FUDocumentController.h"
 
 @implementation FUTabsPreferences
 
-- (void)setValueForSender:(id)sender {
+- (void)updateUI {
+
+}
+
+
+- (IBAction)setValueForSender:(id)sender {
     self.defaultsHaveChanged = YES;
     [super setValueForSender:sender];
 }

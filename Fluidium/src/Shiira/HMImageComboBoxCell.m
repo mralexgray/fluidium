@@ -40,7 +40,7 @@ static int  HMImageComboBoxImageMargin = 2;
 
 - (id)initImageCell:(NSImage *)anImage
 {
-    //NSLog(@"%@", NSStringFromSelector(_cmd));
+    //NSLog(@"%s", _cmd);
     self = [super init];
     if (self != nil) {
         
@@ -51,7 +51,7 @@ static int  HMImageComboBoxImageMargin = 2;
 
 - (id)initTextCell:(NSString *)aString
 {
-    //NSLog(@"%@", NSStringFromSelector(_cmd));
+    //NSLog(@"%s", _cmd);
     self = [super init];
     if (self != nil) {
         

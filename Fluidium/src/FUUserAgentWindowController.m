@@ -15,33 +15,24 @@
 #import "FUUserAgentWindowController.h"
 #import "FUUserDefaults.h"
 #import "FUUtils.h"
-#import "FUApplication.h"
-#import "FUNotifications.h"
 
 #define UA_MENU_TAG 47
+
+NSString *const FUUserAgentStringDidChangeNotification = @"FUUserAgentStringDidChangeNotification";
 
 @interface FUUserAgentWindowController ()
 - (void)loadUserAgentStrings;
 - (void)updateMainMenu;
 - (BOOL)isUsingDefaultUserAgent;
+- (void)postDidChangeNotification;
 
+@property (nonatomic, copy) NSArray *userAgentStrings;
 @property (nonatomic, copy) NSString *defaultUserAgentFormat;
 @end
 
 @implementation FUUserAgentWindowController
 
-+ (void)load {
-    if ([FUUserAgentWindowController class] == self) {
-        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-        
-        [self instance]; // load early
-        
-        [pool release];
-    }
-}
-
-
-+ (FUUserAgentWindowController *)instance {
++ (id)instance {
     static FUUserAgentWindowController *instance = nil;
     @synchronized (self) {
         if (!instance) {
@@ -55,23 +46,18 @@
 - (id)initWithWindowNibName:(NSString *)name {
     if (self = [super initWithWindowNibName:name]) {
         [self loadUserAgentStrings];
-        
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(applicationDidFinishLaunching:)
-                                                     name:NSApplicationDidFinishLaunchingNotification
-                                                   object:nil];
+        [self updateMainMenu];
     }
     return self;
 }
 
 
 - (void)dealloc {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-     
     self.userAgentString = nil;
-    self.allUserAgentStrings = nil;
+    self.userAgentStrings = nil;
     self.defaultUserAgentFormat = nil;
     self.defaultUserAgentString = nil;
+    self.webKitVersionString = nil;
     self.editingUserAgentString = nil;
     [super dealloc];
 }
@@ -80,7 +66,7 @@
 #pragma mark -
 #pragma mark Actions
 
-- (IBAction)changeUserAgentString:(id)sender {
+- (IBAction)changeUAString:(id)sender {
     NSMenu *UAMenu = [sender menu];
     
     for (NSMenuItem *item in [UAMenu itemArray]) {
@@ -89,11 +75,11 @@
     
     [sender setState:NSOnState];
     
-    self.userAgentString = [[allUserAgentStrings objectAtIndex:[sender tag]] objectForKey:@"value"];
+    self.userAgentString = [[userAgentStrings objectAtIndex:[sender tag]] objectForKey:@"value"];
 }
 
 
-- (IBAction)changeUserAgentStringToOther:(id)sender {
+- (IBAction)changeUAStringToOther:(id)sender {
     NSMenu *UAMenu = [sender menu];
     
     for (NSMenuItem *item in [UAMenu itemArray]) {
@@ -125,9 +111,9 @@
 
 - (void)loadUserAgentStrings {
     NSString *path = [[[NSBundle mainBundle] pathForResource:@"UserAgentStrings" ofType:@"plist"] stringByExpandingTildeInPath];
-    self.allUserAgentStrings = [NSArray arrayWithContentsOfFile:path];
-    if ([allUserAgentStrings count]) {
-        self.defaultUserAgentFormat = [[allUserAgentStrings objectAtIndex:0] objectForKey:@"value"];
+    self.userAgentStrings = [NSArray arrayWithContentsOfFile:path];
+    if ([userAgentStrings count]) {
+        self.defaultUserAgentFormat = [[userAgentStrings objectAtIndex:0] objectForKey:@"value"];
     }
 }
 
@@ -141,25 +127,42 @@
 }
 
 
+- (NSString *)webKitVersionString {
+    if (!webKitVersionString) {
+        NSString *path = @"/System/Library/Frameworks/WebKit.framework/Versions/A/Resources/version.plist";
+        NSDictionary *d = [NSDictionary dictionaryWithContentsOfFile:path];
+        NSString *s = [d objectForKey:@"CFBundleVersion"];
+        if ([s length] > 2) {
+            // The value in the version.plist file looks like this. dunno what the leading '6' is for, but Safari removes it. so we will too. :|
+            //        <key>CFBundleVersion</key>
+            //        <string>6531.21.8</string>
+            s = [s substringFromIndex:1];
+        } else {
+            // a reasonable default (Safari 4.0.4)
+            s = @"531.21.10";
+        }
+        self.webKitVersionString = s;
+    }
+    return webKitVersionString;
+}
+
+
 - (NSString *)defaultUserAgentString {
     if (!defaultUserAgentString) {
         // Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_2; en-us) AppleWebKit/531.21.8 (KHTML, like Gecko) Version/4.0.4 Safari/531.21.10
-        // Mozilla/5.0 (Macintosh; U; Intel Mac OS X %d_%d_%d; en-us) AppleWebKit/%@ (KHTML, like Gecko) %@/%@ Safari/%@
+        // Mozilla/5.0 (Macintosh; U; Intel Mac OS X %d_%d_%d; en-us) AppleWebKit/%@ (KHTML, like Gecko) Fluid/%@ Safari/%@
         
         NSUInteger macMajorVers, macMinorVers, macBugfixVers;
         FUGetSystemVersion(&macMajorVers, &macMinorVers, &macBugfixVers);
         
         NSString *appVers = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
-        NSString *webKitVers = FUWebKitVersionString();
-        
-        NSString *appName = [[FUApplication instance] isFluidSSB] ? @"Fluid" : [[FUApplication instance] appName];
+        NSString *webKitVers = [self webKitVersionString];
         
         self.defaultUserAgentString = [NSString stringWithFormat:defaultUserAgentFormat, 
                                        macMajorVers,
                                        macMinorVers,
                                        macBugfixVers,
                                        webKitVers,
-                                       appName,
                                        appVers,
                                        webKitVers];
         //NSLog(@"defaultUserAgentString: %@", defaultUserAgentString);
@@ -175,8 +178,7 @@
         [[FUUserDefaults instance] setUserAgentString:[[s copy] autorelease]];
     }
     [[NSUserDefaults standardUserDefaults] synchronize];
-
-    [[NSNotificationCenter defaultCenter] postNotificationName:FUUserAgentStringDidChangeNotification object:self];
+    [self postDidChangeNotification];
 }
 
 
@@ -206,7 +208,7 @@
     
     NSString *lastTitleFirstWord = nil;
     NSInteger tag = 0;
-    for (NSDictionary *d in allUserAgentStrings) {
+    for (NSDictionary *d in userAgentStrings) {
         NSString *title = [d objectForKey:@"title"];
         NSString *value = [d objectForKey:@"value"];
         
@@ -221,7 +223,7 @@
         lastTitleFirstWord = [title substringToIndex:loc];
         
         NSMenuItem *item = [[[NSMenuItem alloc] initWithTitle:title
-                                                       action:@selector(changeUserAgentString:)
+                                                       action:@selector(changeUAString:)
                                                 keyEquivalent:@""] autorelease];
         [item setTarget:self];
         [item setTag:tag++];
@@ -236,7 +238,7 @@
     [UAMenu addItem:[NSMenuItem separatorItem]];
     
     NSMenuItem *otherItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Other...", @"")
-                                                        action:@selector(changeUserAgentStringToOther:)
+                                                        action:@selector(changeUAStringToOther:)
                                                  keyEquivalent:@""] autorelease];
     [otherItem setTarget:self];
     [UAMenu addItem:otherItem];
@@ -247,13 +249,14 @@
 }
 
 
-- (void)applicationDidFinishLaunching:(NSNotification *)n {
-    [self updateMainMenu];
+- (void)postDidChangeNotification {
+    [[NSNotificationCenter defaultCenter] postNotificationName:FUUserAgentStringDidChangeNotification object:self];
 }
 
 @synthesize userAgentString;
-@synthesize allUserAgentStrings;
+@synthesize userAgentStrings;
 @synthesize defaultUserAgentFormat;
 @synthesize defaultUserAgentString;
+@synthesize webKitVersionString;
 @synthesize editingUserAgentString;
 @end

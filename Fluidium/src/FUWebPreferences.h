@@ -14,11 +14,13 @@
 
 #import <WebKit/WebKit.h>
 
+extern NSString * FUWebPreferencesDidChangeNotification;
+
 @interface FUWebPreferences : WebPreferences {
 
 }
 
-+ (FUWebPreferences *)instance;
++ (id)instance;
 
 - (void)postDidChangeNotification;
 @end

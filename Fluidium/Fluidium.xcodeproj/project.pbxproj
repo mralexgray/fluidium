@@ -78,6 +78,8 @@
 /* Begin PBXBuildFile section */
 		1DDD582C0DA1D0D100B32029 /* FUWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1DDD58280DA1D0D100B32029 /* FUWindow.xib */; };
 		1DDD582D0DA1D0D100B32029 /* FUMainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1DDD582A0DA1D0D100B32029 /* FUMainMenu.xib */; };
+		7B485E7D178F740D00BF76E3 /* OmniAppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B485E3D178F5FC400BF76E3 /* OmniAppKit.framework */; };
+		7B485E7E178F741500BF76E3 /* OmniAppKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7B485E3D178F5FC400BF76E3 /* OmniAppKit.framework */; };
 		8D15AC2C0486D014006FF6A4 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */; };
 		8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165FFE840EACC02AAC07 /* InfoPlist.strings */; };
 		8D15AC340486D014006FF6A4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */; };
@@ -520,6 +522,41 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		7B485E3C178F5FC400BF76E3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B485E35178F5FC200BF76E3 /* OmniAppKit.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4AA1E7F908AA764600E2FF6B;
+			remoteInfo = "OmniAppKit (Framework)";
+		};
+		7B485E3E178F5FC400BF76E3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B485E35178F5FC200BF76E3 /* OmniAppKit.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4AA1E81108AA764700E2FF6B;
+			remoteInfo = OAUnitTests;
+		};
+		7B485E40178F5FC400BF76E3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B485E35178F5FC200BF76E3 /* OmniAppKit.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4AA1E81E08AA764700E2FF6B;
+			remoteInfo = OAMakeImageSizeIntegral;
+		};
+		7B485E42178F5FC400BF76E3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B485E35178F5FC200BF76E3 /* OmniAppKit.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4AA1E82C08AA764700E2FF6B;
+			remoteInfo = OAPatternColorPicker;
+		};
+		7B485E7B178F73ED00BF76E3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B485E35178F5FC200BF76E3 /* OmniAppKit.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4AA1E67A08AA764600E2FF6B;
+			remoteInfo = "OmniAppKit (Framework)";
+		};
 		D309FCD811DFE32000C30AA8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D32E8C2310E593AB00445B4C /* TabsPlugIn.xcodeproj */;
@@ -816,6 +853,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				7B485E7E178F741500BF76E3 /* OmniAppKit.framework in Copy Frameworks */,
 				D30BC46610E187C10019816B /* Growl.framework in Copy Frameworks */,
 				D3189E9810F7000F00B6AA21 /* Sparkle.framework in Copy Frameworks */,
 				D3F941601102F3B900267DA0 /* ShortcutRecorder.framework in Copy Frameworks */,
@@ -901,6 +939,7 @@
 		2A37F4BAFDCFA73011CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = English; path = English.lproj/Credits.rtf; sourceTree = "<group>"; };
 		2A37F4C4FDCFA73011CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		2A37F4C5FDCFA73011CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		7B485E35178F5FC200BF76E3 /* OmniAppKit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OmniAppKit.xcodeproj; path = lib/OmniGroup/Frameworks/OmniAppKit/OmniAppKit.xcodeproj; sourceTree = "<group>"; };
 		8D15AC370486D014006FF6A4 /* Fluidium.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Fluidium.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D305193310C909E400AFF325 /* FUTabController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FUTabController.h; path = include/Fluidium/FUTabController.h; sourceTree = "<group>"; };
 		D305193410C909E400AFF325 /* FUTabController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = FUTabController.m; path = src/FUTabController.m; sourceTree = "<group>"; };
@@ -1296,6 +1335,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7B485E7D178F740D00BF76E3 /* OmniAppKit.framework in Frameworks */,
 				D34B5E1C10CF6EF3006E17C4 /* Carbon.framework in Frameworks */,
 				D3D800EB111E187D0025650C /* CoreServices.framework in Frameworks */,
 				8D15AC340486D014006FF6A4 /* Cocoa.framework in Frameworks */,
@@ -1378,6 +1418,7 @@
 		2A37F4AAFDCFA73011CA2CEA /* FluidApp */ = {
 			isa = PBXGroup;
 			children = (
+				7B485E35178F5FC200BF76E3 /* OmniAppKit.xcodeproj */,
 				D328FC9410CC339E00BB363B /* PSMTabBarControl.xcodeproj */,
 				D31CC0C010EFCB590013347D /* TDAppKit.xcodeproj */,
 				D346E48410CE434A00BA0B15 /* ParseKit.xcodeproj */,
@@ -1460,6 +1501,17 @@
 				1058C7A8FEA54F5311CA2CBB /* Other Frameworks */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		7B485E36178F5FC200BF76E3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7B485E3D178F5FC400BF76E3 /* OmniAppKit.framework */,
+				7B485E3F178F5FC400BF76E3 /* OAUnitTests.otest */,
+				7B485E41178F5FC400BF76E3 /* OAMakeImageSizeIntegral */,
+				7B485E43178F5FC400BF76E3 /* OAPatternColorPicker.bundle */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		D30BC47210E188760019816B /* JavaScript Bridge */ = {
@@ -2182,6 +2234,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				7B485E7C178F73ED00BF76E3 /* PBXTargetDependency */,
 				D328FF5010CC340C00BB363B /* PBXTargetDependency */,
 				D31CC0CE10EFCB770013347D /* PBXTargetDependency */,
 				D346E58F10CE437800BA0B15 /* PBXTargetDependency */,
@@ -2250,6 +2303,10 @@
 					ProjectRef = D3C2E4DE11D7EF0B00106E86 /* Fake.xcodeproj */;
 				},
 				{
+					ProductGroup = 7B485E36178F5FC200BF76E3 /* Products */;
+					ProjectRef = 7B485E35178F5FC200BF76E3 /* OmniAppKit.xcodeproj */;
+				},
+				{
 					ProductGroup = D346E48510CE434A00BA0B15 /* Products */;
 					ProjectRef = D346E48410CE434A00BA0B15 /* ParseKit.xcodeproj */;
 				},
@@ -2288,6 +2345,34 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		7B485E3D178F5FC400BF76E3 /* OmniAppKit.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = OmniAppKit.framework;
+			remoteRef = 7B485E3C178F5FC400BF76E3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		7B485E3F178F5FC400BF76E3 /* OAUnitTests.otest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = OAUnitTests.otest;
+			remoteRef = 7B485E3E178F5FC400BF76E3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		7B485E41178F5FC400BF76E3 /* OAMakeImageSizeIntegral */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = OAMakeImageSizeIntegral;
+			remoteRef = 7B485E40178F5FC400BF76E3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		7B485E43178F5FC400BF76E3 /* OAPatternColorPicker.bundle */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = OAPatternColorPicker.bundle;
+			remoteRef = 7B485E42178F5FC400BF76E3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		D31CC0CA10EFCB590013347D /* TDAppKit.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -2931,6 +3016,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		7B485E7C178F73ED00BF76E3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "OmniAppKit (Framework)";
+			targetProxy = 7B485E7B178F73ED00BF76E3 /* PBXContainerItemProxy */;
+		};
 		D309FCD911DFE32000C30AA8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = TabsPlugIn;

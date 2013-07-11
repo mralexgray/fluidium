@@ -14,6 +14,7 @@
 
 #import "FUBookmarkButtonSeparator.h"
 
+
 @implementation FUBookmarkButtonSeparator
 
 - (id)init {
@@ -24,10 +25,8 @@
 }
 
 
-- (void)drawRect:(NSRect)dirtyRect {
-    BOOL isMain = [[self window] isMainWindow];
-    
-    CGRect rect = NSRectToCGRect([self bounds]);
+- (void)drawRect:(NSRect)inRect {
+    CGRect rect = NSRectToCGRect(inRect);
     CGContextRef c = [[NSGraphicsContext currentContext] graphicsPort];
     
     //clear
@@ -42,18 +41,10 @@
     for (i = 0; i < 2; i++) {
         if (0 == i) {
             CGContextTranslateCTM(c, 1, -1);
-            if (isMain) {
-                CGContextSetRGBFillColor(c, .7, .7, .7, 1);
-            } else {
-                CGContextSetRGBFillColor(c, .9, .9, .9, 1);
-            }
+            CGContextSetRGBFillColor(c, .7, .7, .7, 1);
         } else {
             CGContextRestoreGState(c);
-            if (isMain) {
-                CGContextSetRGBFillColor(c, .3, .3, .3, 1);
-            } else {
-                CGContextSetRGBFillColor(c, .5, .5, .5, 1);
-            }
+            CGContextSetRGBFillColor(c, .3, .3, .3, 1);
         }
 
         // draw bar
@@ -69,11 +60,7 @@
     }
     
     // center of circle
-    if (isMain) {
-        CGContextSetRGBFillColor(c, .6, .6, .6, 1);
-    } else {
-        CGContextSetRGBFillColor(c, .8, .8, .8, 1);
-    }
+    CGContextSetRGBFillColor(c, 150.0/255.0, 150.0/255.0, 150.0/255.0, 1);
     CGContextBeginPath(c);
     CGContextMoveToPoint(c, x, y);
     CGContextAddArc(c, x, y, 1, 0, 2*M_PI, 0);

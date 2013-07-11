@@ -14,14 +14,13 @@
 
 #import "FUActivation.h"
 #import "FUUtils.h"
-#import <TDAppKit/NSEvent+TDAdditions.h>
-#import <TDAppKit/TDUtils.h>
+#import "NSEvent+FUAdditions.h"
 #import <WebKit/WebKit.h>
 
 @interface FUActivation ()
-@property (nonatomic, readwrite, getter=isCommandClick) BOOL commandKeyPressed;
-@property (nonatomic, readwrite, getter=isShiftClick) BOOL shiftKeyPressed;
-@property (nonatomic, readwrite, getter=isOptionClick) BOOL optionKeyPressed;
+@property (nonatomic, readwrite, getter=isCommandClick) BOOL isCommandKeyPressed;
+@property (nonatomic, readwrite, getter=isShiftClick) BOOL isShiftKeyPressed;
+@property (nonatomic, readwrite, getter=isOptionClick) BOOL isOptionKeyPressed;
 @end
 
 @implementation FUActivation
@@ -29,9 +28,9 @@
 + (id)activationFromEvent:(NSEvent *)evt {
     FUActivation *a = [[[self alloc] init] autorelease];
     
-    a.commandKeyPressed = [evt isCommandKeyPressed] || [evt is3rdButtonClick];
-    a.shiftKeyPressed   = [evt isShiftKeyPressed];
-    a.optionKeyPressed  = [evt isOptionKeyPressed];
+    a.isCommandKeyPressed = [evt FU_isCommandKeyPressed] || [evt FU_is3rdButtonClick];
+    a.isShiftKeyPressed   = [evt FU_isShiftKeyPressed];
+    a.isOptionKeyPressed  = [evt FU_isOptionKeyPressed];
     
     return a;
 }
@@ -39,30 +38,29 @@
 
 + (id)activationFromModifierFlags:(NSUInteger)flags {
     FUActivation *a = [[[self alloc] init] autorelease];
- 
-// TODO: by commenting above I am fixing the build... needs to be Fixed properly afterwords... 
-//    a.commandKeyPressed = TDIsCommandKeyPressed(flags);
-//    a.shiftKeyPressed   = TDIsShiftKeyPressed(flags);
-//    a.optionKeyPressed  = TDIsOptionKeyPressed(flags);
+    
+    a.isCommandKeyPressed = FUIsCommandKeyPressed(flags);
+    a.isShiftKeyPressed   = FUIsShiftKeyPressed(flags);
+    a.isOptionKeyPressed  = FUIsOptionKeyPressed(flags);
     
     return a;
 }
+
 
 + (id)activationFromWebActionInfo:(NSDictionary *)info {
     FUActivation *a = [[[self alloc] init] autorelease];
     
-// TODO: by commenting above I am fixing the build... needs to be Fixed properly afterwords... 
-//    NSUInteger flags = [[info objectForKey:WebActionModifierFlagsKey] unsignedIntegerValue];
-//    BOOL isMiddleClick = (1 == [[info objectForKey:WebActionButtonKey] integerValue]);
+    NSUInteger flags = [[info objectForKey:WebActionModifierFlagsKey] unsignedIntegerValue];
+    BOOL isMiddleClick = 1 == [[info objectForKey:WebActionButtonKey] integerValue];
     
-//    a.commandKeyPressed = TDIsCommandKeyPressed(flags) || isMiddleClick;
-//    a.shiftKeyPressed   = TDIsShiftKeyPressed(flags);
-//    a.optionKeyPressed  = TDIsOptionKeyPressed(flags);
+    a.isCommandKeyPressed = FUIsCommandKeyPressed(flags) || isMiddleClick;
+    a.isShiftKeyPressed   = FUIsShiftKeyPressed(flags);
+    a.isOptionKeyPressed  = FUIsOptionKeyPressed(flags);
 
     return a;
 }
 
-@synthesize commandKeyPressed;
-@synthesize shiftKeyPressed;
-@synthesize optionKeyPressed;
+@synthesize isCommandKeyPressed;
+@synthesize isShiftKeyPressed;
+@synthesize isOptionKeyPressed;
 @end

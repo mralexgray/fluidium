@@ -21,16 +21,14 @@
     NSArrayController *arrayController;
 }
 
-+ (FUBookmarkWindowController *)instance;
++ (id)instance;
 
 - (IBAction)insert:(id)sender;
 - (IBAction)remove:(id)sender;
 
-- (void)appendBookmark:(FUBookmark *)bmark;
-- (void)insertBookmark:(FUBookmark *)bmark atIndex:(NSInteger)i;
-- (void)removeBookmark:(FUBookmark *)bmark;
-
-- (void)beginEditingContentForBookmarkAtIndex:(NSInteger)i;
+- (void)appendBookmark:(FUBookmark *)b;
+- (void)insertBookmark:(FUBookmark *)b atIndex:(NSInteger)i;
+- (void)removeBookmark:(FUBookmark *)b;
 
 @property (nonatomic, retain) IBOutlet NSTableView *tableView;
 @property (nonatomic, retain) IBOutlet NSArrayController *arrayController;

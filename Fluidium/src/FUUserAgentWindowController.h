@@ -14,24 +14,27 @@
 
 #import <Cocoa/Cocoa.h>
 
+extern NSString *const FUUserAgentStringDidChangeNotification;
+
 @interface FUUserAgentWindowController : NSWindowController {
     NSString *userAgentString;
-    NSArray *allUserAgentStrings;
+    NSArray *userAgentStrings;
     NSString *defaultUserAgentFormat;
     NSString *defaultUserAgentString;
+    NSString *webKitVersionString;
     NSString *editingUserAgentString;
 }
 
-+ (FUUserAgentWindowController *)instance;
++ (id)instance;
 
-- (IBAction)changeUserAgentString:(id)sender;
-- (IBAction)changeUserAgentStringToOther:(id)sender;
+- (IBAction)changeUAString:(id)sender;
+- (IBAction)changeUAStringToOther:(id)sender;
 
 - (IBAction)cancel:(id)sender;
 - (IBAction)ok:(id)sender;
 
 @property (nonatomic, copy) NSString *userAgentString;
-@property (nonatomic, copy) NSArray *allUserAgentStrings;
+@property (nonatomic, copy) NSString *webKitVersionString;
 @property (nonatomic, copy) NSString *defaultUserAgentString;
 @property (nonatomic, copy) NSString *editingUserAgentString;
 @end

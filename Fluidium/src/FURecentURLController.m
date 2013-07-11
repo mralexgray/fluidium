@@ -25,7 +25,7 @@
 
 @implementation FURecentURLController
 
-+ (FURecentURLController *)instance {
++ (id)instance {
     static FURecentURLController *instance = nil;
     @synchronized (self) {
         if (!instance) {
@@ -90,7 +90,7 @@
         }
         
         // remove leading http:// or https://
-        URLString = [URLString stringByTrimmingURLSchemePrefix];
+        URLString = [URLString FU_stringByTrimmingURLSchemePrefix];
         
         // remove leading www.
         NSString *prefix = @"www.";

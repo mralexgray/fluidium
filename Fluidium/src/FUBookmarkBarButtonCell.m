@@ -14,7 +14,7 @@
 
 #import "FUBookmarkBarButtonCell.h"
 #import "FUBookmarkBarButton.h"
-#import <TDAppKit/NSBezierPath+TDAdditions.h>
+#import "NSBezierPath+PXRoundedRectangleAdditions.h"
 
 @interface NSCell (TextAttributes)
 - (id)_textAttributes;
@@ -129,7 +129,9 @@
         NSPoint point = [[controlView window] mouseLocationOutsideOfEventStream];
         point = [controlView convertPoint:point fromView:nil];
 
-        id path = [NSBezierPath bezierPathWithRoundRect:NSInsetRect(cellFrame, 0, 1) radius:2];
+        id path = [NSBezierPath bezierPathWithRoundedRect:NSInsetRect(cellFrame, 0, 1)
+                                             cornerRadius:2.0
+                                                inCorners:OSTopLeftCorner|OSTopRightCorner|OSBottomLeftCorner|OSBottomRightCorner];
         if (NSPointInRect(point, cellFrame)) {
             if ([self isHighlighted] || [self isSelected]) {
                 [[self pressedBackgroundColor] set];

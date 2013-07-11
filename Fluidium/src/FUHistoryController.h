@@ -14,18 +14,14 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface FUHistoryController : NSObject 
-#if FU_BUILD_TARGET_SNOW_LEOPARD
-<NSMenuDelegate>
-#endif
-{
+@interface FUHistoryController : NSObject {
     NSString *webHistoryFilePath;
     NSMutableArray *historyMenuObjects;
     NSUInteger numIndividualItems;
     BOOL firstHistoryDateIsToday;
 }
 
-+ (FUHistoryController *)instance;
++ (id)instance;
 
 - (IBAction)historyItemClicked:(id)sender;
 

@@ -14,18 +14,18 @@
 
 #import "FUWhitelistController.h"
 #import "FUUserDefaults.h"
-#import "FUNotifications.h"
 #import "FUWildcardPattern.h"
 
 #define MIN_INF_LOOP_DELAY .5
 
 @interface FUWhitelistController ()
+- (void)homeURLStringDidChange:(NSNotification *)n;
 - (void)loadSpecialCases;
 @end
 
 @implementation FUWhitelistController
 
-+ (FUWhitelistController *)instance {
++ (id)instance {
     static FUWhitelistController *instance = nil;
     @synchronized (self) {
         if (!instance) {
@@ -86,7 +86,7 @@
         BOOL isInfiniteLoop = [lastDate timeIntervalSinceNow] < MIN_INF_LOOP_DELAY && [URLString isEqualToString:lastURLString];
         if (isInfiniteLoop) {
             NSRunAlertPanel(NSLocalizedString(@"Infinite Loop Detected", @""), 
-                            NSLocalizedString(@"This Fluid App is set as your default browser, but you have disallowed browsing to %@", @""),
+                            NSLocalizedString(@"This SSB is set as your default browser, but you have disallowed browsing to %@", @""),
                             NSLocalizedString(@"OK", @""),
                             nil,
                             nil,

@@ -16,9 +16,8 @@
 #import "FUDocumentController.h"
 #import "FUWindowController.h"
 #import "NSArray+FUAdditions.h"
-#import "WebIconDatabase.h"
+#import "WebKitPrivate.h"
 #import "WebIconDatabase+FUAdditions.h"
-#import <WebKit/WebKit.h>
 
 #define BACK_FWD_ITEM_LIMIT 16
 #define MENU_FUDGE_Y 3
@@ -109,9 +108,9 @@
     
     NSArray *historyItems = nil;
     
-    BOOL isBackButton = (@selector(webGoBack:) == [self action]);
+    BOOL isBackButton = (@selector(goBack:) == [self action]);
     if (isBackButton) {
-        historyItems = [[list backListWithLimit:BACK_FWD_ITEM_LIMIT] reversedArray];
+        historyItems = [[list backListWithLimit:BACK_FWD_ITEM_LIMIT] FU_reversedArray];
     } else {
         historyItems = [list forwardListWithLimit:BACK_FWD_ITEM_LIMIT];
     }
@@ -119,14 +118,9 @@
     NSMenu *menu = [[[NSMenu alloc] initWithTitle:@""] autorelease];
 
     for (WebHistoryItem *historyItem in historyItems) {
-        NSImage *icon = [[WebIconDatabase sharedIconDatabase] faviconForURL:[historyItem URLString]];
+        NSImage *icon = [[WebIconDatabase sharedIconDatabase] FU_faviconForURL:[historyItem URLString]];
 
-        NSString *title = [historyItem title];
-        if (![title length]) {
-            title = [historyItem URLString];
-        }
-        
-        NSMenuItem *menuItem = [[[NSMenuItem alloc] initWithTitle:title
+        NSMenuItem *menuItem = [[[NSMenuItem alloc] initWithTitle:[historyItem title]
                                                            action:@selector(menuItemClick:)
                                                     keyEquivalent:@""] autorelease];
         [menuItem setTarget:self];
@@ -143,6 +137,7 @@
     WebView *webView = [[FUDocumentController instance] frontWebView];
     [webView goToBackForwardItem:[sender representedObject]];
 }
+
 
 @synthesize timer;
 @end

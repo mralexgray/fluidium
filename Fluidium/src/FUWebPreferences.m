@@ -14,13 +14,12 @@
 
 #import "FUWebPreferences.h"
 #import "FUUserDefaults.h"
-#import "FUUserstyleController.h"
-#import "FUNotifications.h"
-#import "WebPreferencesPrivate.h"
+
+NSString * FUWebPreferencesDidChangeNotification = @"FUWebPreferencesDidChangeNotification";
 
 @implementation FUWebPreferences
 
-+ (FUWebPreferences *)instance {
++ (id)instance {
     static FUWebPreferences *instance = nil;
     @synchronized (self) {
         if (!instance) {
@@ -55,20 +54,8 @@
         [self setTabsToLinks:NO];
         [self setUsesPageCache:YES];
 
-        [self setUserStyleSheetEnabled:YES];
-        [self setUserStyleSheetLocation:[[FUUserstyleController instance] defaultCSSURL]];
-        
-        // PRIVATE
-        [self setShrinksStandaloneImagesToFit:YES];
-
-#if FU_LOCAL_STORAGE_ENABLED
-		// Mital Vora
-		// TODO: change this hardcoded path to app specific path.
-		[self _setLocalStorageDatabasePath:@"~/Library/Application Support/myApp"];
-        [self setDatabasesEnabled:YES];
-		[self setOfflineWebApplicationCacheEnabled:YES];
-		[self setLocalStorageEnabled:YES];
-#endif
+        [self setUserStyleSheetEnabled:NO];
+        //[self setUserStyleSheetLocation:nil];
     }
     return self;
 }

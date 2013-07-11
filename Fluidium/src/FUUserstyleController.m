@@ -18,7 +18,6 @@
 #import "FUWebView.h"
 #import "FUApplication.h"
 #import "FUWildcardPattern.h"
-#import "FUNotifications.h"
 #import <WebKit/WebKit.h>
 
 @interface FUUserstyleController ()
@@ -31,7 +30,7 @@
 
 @implementation FUUserstyleController
 
-+ (FUUserstyleController *)instance {
++ (id)instance {
     static FUUserstyleController *instance = nil;
     @synchronized (self) {
         if (!instance) {
@@ -86,7 +85,7 @@
 #pragma mark Notifications
 
 - (void)tabControllerDidCommitLoad:(NSNotification *)n {
-    FUTabController *tc = [n object];
+    FUTabController *tc = [[n userInfo] objectForKey:FUTabControllerKey];
     WebView *wv = [tc webView];
     WebPreferences *oldPrefs = [wv preferences];
     

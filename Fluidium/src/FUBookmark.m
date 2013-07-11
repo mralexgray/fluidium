@@ -13,83 +13,8 @@
 //  limitations under the License.
 
 #import "FUBookmark.h"
-#import "FUUtils.h"
-#import "NSString+FUAdditions.h"
-#import "NSPasteboard+FUAdditions.h"
-#import "WebURLsWithTitles.h"
-
-@interface FUBookmark ()
-+ (NSString *)titleFromURLString:(NSString *)URLString;
-@end
 
 @implementation FUBookmark
-
-+ (FUBookmark *)bookmarkWithTitle:(NSString *)t content:(NSString *)c {
-    FUBookmark *bmark = [[[FUBookmark alloc] init] autorelease];
-    if (t) {
-        bmark.title = t;        
-    }
-    if (c) {
-        bmark.content = c;
-    }
-    return bmark;
-}
-
-
-+ (NSArray *)bookmarksFromPasteboard:(NSPasteboard *)pboard {
-    NSMutableArray *bmarks = [NSMutableArray array];
-
-    NSInteger i = 0;
-    NSString *title = nil;
-
-    if ([pboard hasWebURLs]) {
-        NSArray *URLs = [WebURLsWithTitles URLsFromPasteboard:pboard];
-        NSArray *titles = [WebURLsWithTitles titlesFromPasteboard:pboard];
-
-        for (NSURL *URL in URLs) {
-            NSString *URLString = [URL absoluteString];
-            if ([URLString length]) {
-                if (i < [titles count]) {
-                    title = [titles objectAtIndex:i++];
-                } else {
-                    title = [self titleFromURLString:URLString];
-                }
-                
-                FUBookmark *bmark = [FUBookmark bookmarkWithTitle:title content:URLString];
-                [bmarks addObject:bmark];
-            }
-        }
-    } else {
-        NSArray *URLs = [pboard propertyListForType:NSURLPboardType];
-        
-        for (NSURL *URL in URLs) {
-            NSString *URLString = [URL absoluteString];
-            if ([URLString length]) {
-                NSString *title = [self titleFromURLString:URLString];
-                
-                FUBookmark *bmark = [FUBookmark bookmarkWithTitle:title content:URLString];                
-                [bmarks addObject:bmark];
-            }
-        }
-    }
-    
-    return bmarks;
-}
-
-
-+ (NSString *)titleFromURLString:(NSString *)URLString {
-    NSString *title = URLString;
-    
-    title = [title stringByTrimmingURLSchemePrefix];
-    NSString *prefix = @"www.";
-    title = [title hasPrefix:prefix] ? [title substringFromIndex:[prefix length]] : title;
-    
-    NSString *suffix = @"/";
-    title = [title hasSuffix:suffix] ? [title substringWithRange:NSMakeRange(0, [title length] - [suffix length])] : title;
-
-    return title;
-}
-
 
 - (id)init {
     if (self = [super init]) {
@@ -104,11 +29,6 @@
     self.title = nil;
     self.content = nil;
     [super dealloc];
-}
-
-
-- (NSString *)description {
-    return [NSString stringWithFormat:@"<FUBookmark %p %@>", self, title];
 }
 
 
@@ -129,13 +49,8 @@
 }
 
 
-- (void)writeAllToPasteboard:(NSPasteboard *)pboard {
-    FUWriteAllToPasteboard(content, title, pboard);
-}
-
-
-- (void)writeWebURLsToPasteboard:(NSPasteboard *)pboard {
-    FUWriteWebURLsToPasteboard(content, title, pboard);
+- (NSString *)description {
+    return [NSString stringWithFormat:@"<FUBookmark: %@>", title];
 }
 
 @synthesize title;
