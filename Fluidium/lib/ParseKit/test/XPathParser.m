@@ -107,7 +107,7 @@
 
 // [1]        LocationPath                        ::=       RelativeLocationPath | AbsoluteLocationPath    
 - (PKCollectionParser *)locationPath {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!locationPath) {
         self.locationPath = [PKAlternation alternation];
         locationPath.name = @"locationPath";
@@ -121,7 +121,7 @@
 
 //[2]        AbsoluteLocationPath                ::=       '/' RelativeLocationPath? | AbbreviatedAbsoluteLocationPath    
 - (PKCollectionParser *)absoluteLocationPath {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!absoluteLocationPath) {
         self.absoluteLocationPath = [PKAlternation alternation];
         absoluteLocationPath.name = @"absoluteLocationPath";
@@ -149,7 +149,7 @@
 //[3] RelativeLocationPath ::= Step SlashStep*    | AbbreviatedRelativeLocationPath
 
 - (PKCollectionParser *)relativeLocationPath {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!relativeLocationPath) {
         self.relativeLocationPath = [PKAlternation alternation];
         relativeLocationPath.name = @"relativeLocationPath";
@@ -172,7 +172,7 @@
 
 // [4] Step ::=       AxisSpecifier NodeTest Predicate* | AbbreviatedStep    
 - (PKCollectionParser *)step {
-    NSLog(@"%s", _cmd);
+    NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!step) {
         self.step = [PKAlternation alternation];
         step.name = @"step";
@@ -193,7 +193,7 @@
 
 // [5]    AxisSpecifier ::= AxisName '::' | AbbreviatedAxisSpecifier
 - (PKCollectionParser *)axisSpecifier {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!axisSpecifier) {
         self.axisSpecifier = [PKAlternation alternation];
         axisSpecifier.name = @"axisSpecifier";
@@ -213,7 +213,7 @@
 // [6] AxisName ::= 'ancestor' | 'ancestor-or-self' | 'attribute' | 'child' | 'descendant' | 'descendant-or-self'
 //            | 'following' | 'following-sibling' | 'namespace' | 'parent' | 'preceding' | 'preceding-sibling' | 'self'
 - (PKCollectionParser *)axisName {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!axisName) {
         self.axisName = [PKAlternation alternation];
         axisName.name = @"axisName";
@@ -237,7 +237,7 @@
 
 // [7]  NodeTest ::= NameTest | NodeType '(' ')' | 'processing-instruction' '(' Literal ')'
 - (PKCollectionParser *)nodeTest {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!nodeTest) {
         self.nodeTest = [PKAlternation alternation];
         nodeTest.name = @"nodeTest";
@@ -262,7 +262,7 @@
 
 // [8]  Predicate ::=  '[' PredicateExpr ']'    
 - (PKCollectionParser *)predicate {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!predicate) {
         self.predicate = [PKSequence sequence];
         predicate.name = @"predicate";
@@ -276,7 +276,7 @@
 
 // [9]  PredicateExpr    ::=       Expr
 - (PKCollectionParser *)predicateExpr {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!predicateExpr) {
         self.predicateExpr = self.expr;
         predicateExpr.name = @"predicateExpr";
@@ -287,7 +287,7 @@
 
 // [10]  AbbreviatedAbsoluteLocationPath ::= '//' RelativeLocationPath    
 - (PKCollectionParser *)abbreviatedAbsoluteLocationPath {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!abbreviatedAbsoluteLocationPath) {
         self.abbreviatedAbsoluteLocationPath = [PKSequence sequence];
         abbreviatedAbsoluteLocationPath.name = @"abbreviatedAbsoluteLocationPath";
@@ -300,7 +300,7 @@
 
 // [11] AbbreviatedRelativeLocationPath ::= RelativeLocationPath '//' Step    
 - (PKCollectionParser *)abbreviatedRelativeLocationPath {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!abbreviatedRelativeLocationPath) {
         self.abbreviatedRelativeLocationPath = [PKSequence sequence];
         abbreviatedRelativeLocationPath.name = @"abbreviatedRelativeLocationPath";
@@ -314,7 +314,7 @@
 
 // [12] AbbreviatedStep    ::=       '.'    | '..'
 - (PKCollectionParser *)abbreviatedStep {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!abbreviatedStep) {
         self.abbreviatedStep = [PKAlternation alternation];
         abbreviatedStep.name = @"abbreviatedStep";
@@ -327,7 +327,7 @@
 
 // [13] AbbreviatedAxisSpecifier ::=       '@'?
 - (PKCollectionParser *)abbreviatedAxisSpecifier {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!abbreviatedAxisSpecifier) {
         self.abbreviatedAxisSpecifier = [PKAlternation alternation];
         abbreviatedAxisSpecifier.name = @"abbreviatedAxisSpecifier";
@@ -340,7 +340,7 @@
 
 // [14]       Expr ::=       OrExpr    
 - (PKCollectionParser *)expr {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!expr) {
         self.expr = self.orExpr;
         expr.name = @"expr";
@@ -355,7 +355,7 @@
 //                    | Number    
 //                    | FunctionCall
 - (PKCollectionParser *)primaryExpr {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!primaryExpr) {
         self.primaryExpr = [PKAlternation alternation];
         primaryExpr.name = @"primaryExpr";
@@ -380,7 +380,7 @@
 // commaArg ::= ',' Argument
 // [16] FunctionCall ::= FunctionName '(' ( Argument commaArg* )? ')'    
 - (PKCollectionParser *)functionCall {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!functionCall) {
         self.functionCall = [PKSequence sequence];
         functionCall.name = @"functionCall";
@@ -408,7 +408,7 @@
 
 // [17] Argument ::=       Expr
 - (PKCollectionParser *)argument {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!argument) {
         self.argument = self.expr;
         argument.name = @"argument";
@@ -425,7 +425,7 @@
 // pipePathExpr :: = | PathExpr
 // [18]  UnionExpr ::=       PathExpr PipePathExpr*
 - (PKCollectionParser *)unionExpr {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!unionExpr) {
         self.unionExpr = [PKSequence sequence];
         unionExpr.name = @"unionExpr";
@@ -446,7 +446,7 @@
 //                    | FilterExpr '/' RelativeLocationPath    
 //                    | FilterExpr '//' RelativeLocationPath    
 - (PKCollectionParser *)pathExpr {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!pathExpr) {
         self.pathExpr = [PKAlternation alternation];
         pathExpr.name = @"pathExpr";
@@ -477,7 +477,7 @@
 
 // [20]  FilterExpr     ::=       PrimaryExpr Predicate?
 - (PKCollectionParser *)filterExpr {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!filterExpr) {
         self.filterExpr = [PKSequence sequence];
         filterExpr.name = @"filterExpr";
@@ -499,7 +499,7 @@
 // orAndExpr ::= 'or' AndExpr
 // me: AndExpr orAndExpr*
 - (PKCollectionParser *)orExpr {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!orExpr) {
         self.orExpr = [PKSequence sequence];
         orExpr.name = @"orExpr";
@@ -526,7 +526,7 @@
 // EqualityExpr andEqualityExpr
 
 - (PKCollectionParser *)andExpr {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!andExpr) {
         self.andExpr = [PKSequence sequence];
         andExpr.name = @"andExpr";
@@ -552,7 +552,7 @@
 // RelationalExpr (equalsRelationalExpr | notEqualsRelationalExpr)?
 
 - (PKCollectionParser *)equalityExpr {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!equalityExpr) {
         self.equalityExpr = [PKSequence sequence];
         equalityExpr.name = @"equalityExpr";
@@ -591,7 +591,7 @@
 
 // RelationalExpr = AdditiveExpr (ltAdditiveExpr | gtAdditiveExpr | lteAdditiveExpr | gteAdditiveExpr)?
 - (PKCollectionParser *)relationalExpr {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!relationalExpr) {
         
         self.relationalExpr = [PKSequence sequence];
@@ -635,7 +635,7 @@
 
 // AdditiveExpr ::= MultiplicativeExpr (plusMultiplicativeExpr | minusMultiplicativeExpr)?
 - (PKCollectionParser *)additiveExpr {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!additiveExpr) {
         self.additiveExpr = [PKSequence sequence];
         additiveExpr.name = @"additiveExpr";
@@ -673,7 +673,7 @@
 
 // MultiplicativeExpr :: = UnaryExpr (multiplyUnaryExpr | divUnaryExpr | modUnaryExpr)? 
 - (PKCollectionParser *)multiplicativeExpr {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!multiplicativeExpr) {
         self.multiplicativeExpr = [PKSequence sequence];
         multiplicativeExpr.name = @"multiplicativeExpr";
@@ -713,7 +713,7 @@
 
 // UnaryExpr ::= '-'? UnionExpr
 - (PKCollectionParser *)unaryExpr {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!unaryExpr) {
         self.unaryExpr = [PKSequence sequence];
         unaryExpr.name = @"unaryExpr";
@@ -747,7 +747,7 @@
 //                    | Number    
 //                    | VariableReference    
 - (PKCollectionParser *)exprToken {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!exprToken) {
         self.exprToken = [PKAlternation alternation];
         exprToken.name = @"exprToken";
@@ -778,7 +778,7 @@
 
 
 - (PKParser *)literal {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!literal) {
         self.literal = [PKQuotedString quotedString];
         literal.name = @"literal";
@@ -788,7 +788,7 @@
 
 
 - (PKParser *)number {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!number) {
         self.number = [PKNumber number];
         number.name = @"number";
@@ -801,7 +801,7 @@
 //                    | MultiplyOperator    
 //                    | '/' | '//' | '|' | '+' | '-' | '=' | '!=' | '<' | '<=' | '>' | '>='    
 - (PKCollectionParser *)operator {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!operator) {
         self.operator = [PKAlternation alternation];
         operator.name = @"operator";
@@ -825,7 +825,7 @@
 
 // [33] OperatorName ::=       'and' | 'or' | 'mod' | 'div'    
 - (PKCollectionParser *)operatorName {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!operatorName) {
         self.operatorName = [PKAlternation alternation];
         operatorName.name = @"operatorName";
@@ -840,7 +840,7 @@
 
 // [34]       MultiplyOperator                    ::=       '*'    
 - (PKParser *)multiplyOperator {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!multiplyOperator) {
         self.multiplyOperator = [PKSymbol symbolWithString:@"*"];
         multiplyOperator.name = @"multiplyOperator";
@@ -855,7 +855,7 @@
 //[10]       Prefix       ::=       NCName
 //[11]       LocalPart       ::=       NCName
 - (PKCollectionParser *)QName {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!QName) {
         self.QName = [PKAlternation alternation];
         QName.name = @"QName";
@@ -878,7 +878,7 @@
 
 // [35] FunctionName ::= QName - NodeType    
 - (PKParser *)functionName {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!functionName) {
         self.functionName = self.QName; // TODO QName - NodeType
         functionName.name = @"functionName";
@@ -889,7 +889,7 @@
 
 // [36]  VariableReference ::=       '$' QName    
 - (PKCollectionParser *)variableReference {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!variableReference) {
         self.variableReference = [PKSequence sequence];
         variableReference.name = @"variableReference";
@@ -902,7 +902,7 @@
 
 // [37] NameTest ::= '*' | NCName ':' '*' | QName    
 - (PKCollectionParser *)nameTest {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!nameTest) {
         self.nameTest = [PKAlternation alternation];
         nameTest.name = @"nameTest";
@@ -925,7 +925,7 @@
 //                    | 'processing-instruction'    
 //                    | 'node'
 - (PKCollectionParser *)nodeType {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     if (!nodeType) {
         self.nodeType = [PKAlternation alternation];
         nodeType.name = @"nodeType";

@@ -547,7 +547,7 @@
     
     reqID; // clang
     
-    //    NSLog(@"%s: connectionIdentifier = %@", _cmd, reqID);
+    //    NSLog(@"%@: connectionIdentifier = %@", NSStringFromSelector(_cmd), reqID);
 }
 
 
@@ -565,7 +565,7 @@
     
     reqID; // clang
     
-    //    NSLog(@"%s: connectionIdentifier = %@", _cmd, reqID);
+    //    NSLog(@"%@: connectionIdentifier = %@", NSStringFromSelector(_cmd), reqID);
 }
 
 

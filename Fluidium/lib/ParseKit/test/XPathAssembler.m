@@ -38,7 +38,7 @@
 
 
 - (void)didMatchAxisSpecifier:(PKAssembly *)a {
-    //NSLog(@"\n\n %s\n\n %@ \n\n", _cmd, a);
+    //NSLog(@"\n\n %@\n\n %@ \n\n", NSStringFromSelector(_cmd), a);
     
     //PKToken *tok = [a pop];
     
@@ -46,17 +46,17 @@
 
 
 - (void)didMatchNodeTest:(PKAssembly *)a {
-    //NSLog(@"\n\n %s\n\n %@ \n\n", _cmd, a);
+    //NSLog(@"\n\n %@\n\n %@ \n\n", NSStringFromSelector(_cmd), a);
 }
 
 
 - (void)didMatchPredicate:(PKAssembly *)a {
-    //NSLog(@"\n\n %s\n\n %@ \n\n", _cmd, a);
+    //NSLog(@"\n\n %@\n\n %@ \n\n", NSStringFromSelector(_cmd), a);
 }
 
 // [4] Step ::=       AxisSpecifier NodeTest Predicate* | AbbreviatedStep    
 - (void)didMatchStep:(PKAssembly *)a {
-    //NSLog(@"\n\n %s\n\n %@ \n\n", _cmd, a);
+    //NSLog(@"\n\n %@\n\n %@ \n\n", NSStringFromSelector(_cmd), a);
 }
 
 

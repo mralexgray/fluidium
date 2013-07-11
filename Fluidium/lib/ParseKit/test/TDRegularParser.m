@@ -206,7 +206,7 @@
 
 
 - (void)didMatchChar:(PKAssembly *)a {
-//    NSLog(@"%s", _cmd);
+//    NSLog(@"%@", NSStringFromSelector(_cmd));
 //    NSLog(@"a: %@", a);
     id obj = [a pop];
     NSAssert([obj isKindOfClass:[NSNumber class]], @"");
@@ -216,7 +216,7 @@
 
 
 - (void)didMatchStar:(PKAssembly *)a {
-    //    NSLog(@"%s", _cmd);
+    //    NSLog(@"%@", NSStringFromSelector(_cmd));
     //    NSLog(@"a: %@", a);
     id top = [a pop];
     NSAssert([top isKindOfClass:[PKParser class]], @"");
@@ -226,7 +226,7 @@
 
 
 - (void)didMatchPlus:(PKAssembly *)a {
-    //    NSLog(@"%s", _cmd);
+    //    NSLog(@"%@", NSStringFromSelector(_cmd));
     //    NSLog(@"a: %@", a);
     id top = [a pop];
     NSAssert([top isKindOfClass:[PKParser class]], @"");
@@ -238,7 +238,7 @@
 
 
 - (void)didMatchQuestion:(PKAssembly *)a {
-    //    NSLog(@"%s", _cmd);
+    //    NSLog(@"%@", NSStringFromSelector(_cmd));
     //    NSLog(@"a: %@", a);
     id top = [a pop];
     NSAssert([top isKindOfClass:[PKParser class]], @"");
@@ -250,7 +250,7 @@
 
 
 //- (void)didMatchAnd:(PKAssembly *)a {
-////    NSLog(@"%s", _cmd);
+////    NSLog(@"%@", NSStringFromSelector(_cmd));
 ////    NSLog(@"a: %@", a);
 //    id second = [a pop];
 //    id first = [a pop];
@@ -264,7 +264,7 @@
 
 
 - (void)didMatchExpression:(PKAssembly *)a {
-//    NSLog(@"%s", _cmd);
+//    NSLog(@"%@", NSStringFromSelector(_cmd));
 //    NSLog(@"a: %@", a);
     
     NSAssert(![a isStackEmpty], @"");
@@ -292,7 +292,7 @@
 
 
 - (void)didMatchOr:(PKAssembly *)a {
-//    NSLog(@"%s", _cmd);
+//    NSLog(@"%@", NSStringFromSelector(_cmd));
 //    NSLog(@"a: %@", a);
     id second = [a pop];
     id first = [a pop];

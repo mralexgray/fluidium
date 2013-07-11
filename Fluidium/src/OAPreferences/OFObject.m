@@ -44,7 +44,7 @@
 //#ifdef DEBUG
 //    if (newExtraRefCount > SaneRetainCount) {
 //        OBASSERT(newExtraRefCount <= SaneRetainCount);
-//        [NSException raise:@"RetainInsane" format:@"-[%@ %s]: Insane retain count! count=%d", OBShortObjectDescription(self), _cmd, newExtraRefCount];
+//        [NSException raise:@"RetainInsane" format:@"-[%@ %@]: Insane retain count! count=%d", OBShortObjectDescription(self), NSStringFromSelector(_cmd), newExtraRefCount];
 //    }
 //#endif
 
@@ -84,7 +84,7 @@
     } else {
 //#ifdef DEBUG
 //        if (newExtraRefCount > SaneRetainCount) {
-//            [NSException raise:@"RetainInsane" format:@"-[%@ %s]: Insane retain count! count=%d", OBShortObjectDescription(self), _cmd, _extraRefCount];
+//            [NSException raise:@"RetainInsane" format:@"-[%@ %@]: Insane retain count! count=%d", OBShortObjectDescription(self), NSStringFromSelector(_cmd), _extraRefCount];
 //        }
 //#endif
     }

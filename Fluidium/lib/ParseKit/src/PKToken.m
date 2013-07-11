@@ -54,9 +54,9 @@ static PKTokenEOF *EOFToken = nil;
 }
 
 
-- (void)release {
-    // do nothing
-}
+//- (void)release {
+//    // do nothing
+//}
 
 
 - (id)autorelease {
@@ -228,7 +228,7 @@ static PKTokenEOF *EOFToken = nil;
     } else if (self.isTwitter) {
         typeString = @"Twitter";
     }
-    return [NSString stringWithFormat:@"<%@ %C%@%C>", typeString, 0x00AB, self.value, 0x00BB];
+    return [NSString stringWithFormat:@"<%@ %d%@%d>", typeString, 0x00AB, self.value, 0x00BB];
 }
 
 

@@ -407,7 +407,7 @@ static void _setValue(OFPreference *self, id *_value, NSString *key, id value)
         result = 0;
     [number release];
 #ifdef DEBUG_PREFERENCES
-    NSLog(@"OFPreference(0x%08x:%@) %s -> %d", self, _key, _cmd, result);
+    NSLog(@"OFPreference(0x%08x:%@) %@ -> %d", self, _key, NSStringFromSelector(_cmd), result);
 #endif
     
     return result;
@@ -426,7 +426,7 @@ static void _setValue(OFPreference *self, id *_value, NSString *key, id value)
         result = 0;
     [number release];
 #ifdef DEBUG_PREFERENCES
-    NSLog(@"OFPreference(0x%08x:%@) %s -> %d", self, _key, _cmd, result);
+    NSLog(@"OFPreference(0x%08x:%@) %@ -> %d", self, _key, NSStringFromSelector(_cmd), result);
 #endif
 
     return result;
@@ -445,7 +445,7 @@ static void _setValue(OFPreference *self, id *_value, NSString *key, id value)
         result = 0.0f;
     [number release];
 #ifdef DEBUG_PREFERENCES
-    NSLog(@"OFPreference(0x%08x:%@) %s -> %f", self, _key, _cmd, result);
+    NSLog(@"OFPreference(0x%08x:%@) %@ -> %f", self, _key, NSStringFromSelector(_cmd), result);
 #endif
 
     return result;
@@ -464,7 +464,7 @@ static void _setValue(OFPreference *self, id *_value, NSString *key, id value)
         result = NO;
     [number release];
 #ifdef DEBUG_PREFERENCES
-    NSLog(@"OFPreference(0x%08x:%@) %s -> %s", self, _key, _cmd, result ? "YES" : "NO");
+    NSLog(@"OFPreference(0x%08x:%@) %s -> %@", self, _key, NSStringFromSelector(_cmd), result ? "YES" : "NO");
 #endif
 
     return result;
@@ -477,7 +477,7 @@ static void _setValue(OFPreference *self, id *_value, NSString *key, id value)
 
 - (int) enumeratedValue
 {
-    [NSException raise:NSInvalidArgumentException format:@"-%s called on non-enumerated %@ (%@)", _cmd, [self shortDescription], _key];
+    [NSException raise:NSInvalidArgumentException format:@"-%@ called on non-enumerated %@ (%@)", NSStringFromSelector(_cmd), [self shortDescription], _key];
     return INT_MIN; // unreached; and unlikely to be a valid enumeration value
 }
 
@@ -540,7 +540,7 @@ static void _setValue(OFPreference *self, id *_value, NSString *key, id value)
 
 - (void) setEnumeratedValue: (int) value;
 {
-    [NSException raise:NSInvalidArgumentException format:@"-%s called on non-enumerated %@ (%@)", _cmd, [self shortDescription], _key];
+    [NSException raise:NSInvalidArgumentException format:@"-%@ called on non-enumerated %@ (%@)", NSStringFromSelector(_cmd), [self shortDescription], _key];
 }
 
 #pragma mark AppleScript support
@@ -659,7 +659,7 @@ static void _setValue(OFPreference *self, id *_value, NSString *key, id value)
 //        return [names enumForName:defaultValue];
 //}
 
-#define BAD_TYPE_IMPL(x) { [NSException raise:NSInvalidArgumentException format:@"-%s called on enumerated %@ (%@)", _cmd, [self shortDescription], _key]; x; }
+#define BAD_TYPE_IMPL(x) { [NSException raise:NSInvalidArgumentException format:@"-%@ called on enumerated %@ (%@)", NSStringFromSelector(_cmd), [self shortDescription], _key]; x; }
 
 - (NSString *) stringValue;            BAD_TYPE_IMPL(return nil)
 - (NSArray *) arrayValue;              BAD_TYPE_IMPL(return nil)

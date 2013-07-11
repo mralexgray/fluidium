@@ -36,7 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 + (Class)cellClass
 {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     // Use HMImageComboBoxCell class
     return [HMImageComboBoxCell class];
 }

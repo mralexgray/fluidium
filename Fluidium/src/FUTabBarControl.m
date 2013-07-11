@@ -54,7 +54,7 @@
     //[[self windowController] removeTabViewItem:tabItem];
     
     // must go thru -takeTabIndexToCloseFrom: to get scripting recordability
-    //NSLog(@"%s index: %d", _cmd, [sender tag]);
+    //NSLog(@"%@ index: %d", NSStringFromSelector(_cmd), [sender tag]);
     [[self windowController] takeTabIndexToCloseFrom:sender];
 }
 

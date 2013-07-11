@@ -30,7 +30,7 @@
 }
 
 
-- (id)initWithPlugInAPI:(id <FUPlugInAPI>)api {
+- (id)initWithPlugInAPI:(id <FUPlugInAPI>)api { NSLog(@"cmd:%@", NSStringFromClass([(NSObject*)api class]));
     if (self = [super init]) {
         self.preferredHorizontalSplitPosition = 220;
         self.preferredVerticalSplitPosition = 220;

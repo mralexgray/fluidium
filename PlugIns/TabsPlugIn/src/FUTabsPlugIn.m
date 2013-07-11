@@ -86,7 +86,7 @@
 
 - (NSDictionary *)aboutInfoDictionary {
     if (!aboutInfoDictionary) {
-        NSString *credits = [[[NSAttributedString alloc] initWithString:@"" attributes:nil] autorelease];
+        NSAttributedString *credits = [[[NSAttributedString alloc] initWithString:@"" attributes:nil] autorelease];
         NSString *applicationName = [NSString stringWithFormat:@"%@ Tabs Plug-in", [plugInAPI appName]];
 
         NSImage  *applicationIcon = [NSImage imageNamed:self.preferencesIconImageName];

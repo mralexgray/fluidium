@@ -89,7 +89,7 @@
 
 - (NSString *)description {
     FUWindowController *wc = [self windowController];
-    return [NSString stringWithFormat:@"<FUTabsViewController %p %@ (tabs %d) (tabModels %d)>", self, [[wc window] title], [[wc tabControllers] count], [tabModels count]];
+    return [NSString stringWithFormat:@"<FUTabsViewController %p %@ (tabs %ld) (tabModels %ld)>", self, [[wc window] title], (unsigned long)[[wc tabControllers] count], (unsigned long)[tabModels count]];
 }
 
 
@@ -426,7 +426,7 @@
 
     NSInteger newModelsCount = [newModels count];
     NSInteger i = startIndex;   
-    for (i >= 0; i < webViewsCount; i++) {
+    for (i = 0; i < webViewsCount; i++) {
         WebView *wv = [wvs objectAtIndex:i];
         FUTabModel *model = [[[FUTabModel alloc] init] autorelease];
         [self updateTabModel:model fromWebView:wv atIndex:i];

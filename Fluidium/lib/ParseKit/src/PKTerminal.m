@@ -87,7 +87,7 @@
 
 
 - (BOOL)qualifies:(id)obj {
-    NSAssert1(0, @"-[PKTerminal %s] must be overriden", _cmd);
+    NSAssert1(0, @"-[PKTerminal %@] must be overriden", NSStringFromSelector(_cmd));
     return NO;
 }
 

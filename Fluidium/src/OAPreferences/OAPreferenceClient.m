@@ -163,7 +163,7 @@
         OFPreference *aPreference = [preferences objectAtIndex:preferenceIndex];
         if ([aPreference hasNonDefaultValue]) {
 #ifdef DEBUG_kc0
-            NSLog(@"-%s: non-default value: '%@' = '%@'", _cmd, [aPreference key], [aPreference objectValue]);
+            NSLog(@"-%@: non-default value: '%@' = '%@'", NSStringFromSelector(_cmd), [aPreference key], [aPreference objectValue]);
 #endif
             return YES;
         }

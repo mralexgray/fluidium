@@ -2618,7 +2618,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cp -pR \"../PlugIns/BrowsaPlugIn/build/${BUILD_STYLE}/Browsa.fluidplugin\" \"${TARGET_BUILD_DIR}/Fluidium.app/Contents/PlugIns\"\ncp -pR \"../PlugIns/TwitterPlugIn/build/${BUILD_STYLE}/Twitter.fluidplugin\" \"${TARGET_BUILD_DIR}/Fluidium.app/Contents/PlugIns\"\ncp -pR \"../PlugIns/TabsPlugIn/build/${BUILD_STYLE}/Tabs.fluidplugin\" \"${TARGET_BUILD_DIR}/Fluidium.app/Contents/PlugIns\"\n\n#cp -pR \"../PlugIns/TabsPlugIn/build/${BUILD_STYLE}/Tabs.fluidplugin\" \"${TARGET_BUILD_DIR}/${FULL_PRODUCT_NAME}/Contents/PlugIns\"\n";
+			shellScript = "cd \"${BUILT_PRODUCTS_DIR}\"\n\nfor D in `find . -name \"*.fluidplugin\"`; do\n\ncp -pR $D Fluidium.app/Contents/PlugIns/\n\ndone\n\n# \"../PlugIns/BrowsaPlugIn/build/${BUILD_STYLE}/Browsa.fluidplugin\" \"${TARGET_BUILD_DIR}/Fluidium.app/Contents/PlugIns\"\n\n\n#cp -pR \"../PlugIns/BrowsaPlugIn/build/${BUILD_STYLE}/Browsa.fluidplugin\" \"${TARGET_BUILD_DIR}/Fluidium.app/Contents/PlugIns\"\n#cp -pR \"../PlugIns/TwitterPlugIn/build/${BUILD_STYLE}/Twitter.fluidplugin\" \"${TARGET_BUILD_DIR}/Fluidium.app/Contents/PlugIns\"\n#cp -pR \"../PlugIns/TabsPlugIn/build/${BUILD_STYLE}/Tabs.fluidplugin\" \"${TARGET_BUILD_DIR}/Fluidium.app/Contents/PlugIns\"\n\n#cp -pR \"../PlugIns/TabsPlugIn/build/${BUILD_STYLE}/Tabs.fluidplugin\" \"${TARGET_BUILD_DIR}/${FULL_PRODUCT_NAME}/Contents/PlugIns\"\n";
 		};
 		D3C2E4D111D7EEBE00106E86 /* Copy PlugIns */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -3241,20 +3241,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = (
-					x86_64,
-					i386,
-					ppc,
-				);
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
+					"\"$(BUILT_PRODUCTS_DIR)\"",
+					"\"$(SRCROOT)/lib/Growl\"",
+					"\"$(SRCROOT)/build/Debug\"",
+					"\"$(SRCROOT)/lib/Sparkle\"",
 					"\"$(SRCROOT)/lib/ShortcutRecorder\"",
 					"\"$(SRCROOT)/lib/PSMTabBarControl/build/$(CONFIGURATION)\"",
 					"\"$(SRCROOT)/lib/TDAppKit/build/$(CONFIGURATION)\"",
 					"\"$(SRCROOT)/lib/ParseKit/build/$(CONFIGURATION)\"",
-					"\"$(SRCROOT)/lib/Growl\"",
-					"\"$(SRCROOT)/build/Debug\"",
-					"\"$(SRCROOT)/lib/Sparkle\"",
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
@@ -3263,14 +3260,15 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = src/Fluidium_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = FUDEBUG;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				GCC_WARN_MULTIPLE_DEFINITION_TYPES_FOR_SELECTOR = NO;
 				GCC_WARN_STRICT_SELECTOR_MATCH = NO;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				INFOPLIST_FILE = res/conf/Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = Fluidium;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -3278,21 +3276,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = (
-					x86_64,
-					i386,
-					ppc,
-				);
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				FRAMEWORK_SEARCH_PATHS = (
+					"\"$(BUILT_PRODUCTS_DIR)\"",
+					"\"$(SRCROOT)/lib/Growl\"",
+					"\"$(SRCROOT)/build/Debug\"",
+					"\"$(SRCROOT)/lib/Sparkle\"",
 					"\"$(SRCROOT)/lib/ShortcutRecorder\"",
 					"\"$(SRCROOT)/lib/PSMTabBarControl/build/$(CONFIGURATION)\"",
 					"\"$(SRCROOT)/lib/TDAppKit/build/$(CONFIGURATION)\"",
 					"\"$(SRCROOT)/lib/ParseKit/build/$(CONFIGURATION)\"",
-					"\"$(SRCROOT)/lib/Growl\"",
-					"\"$(SRCROOT)/build/Debug\"",
-					"\"$(SRCROOT)/lib/Sparkle\"",
 				);
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_MODEL_TUNING = G5;
@@ -3301,14 +3296,14 @@
 				GCC_PREFIX_HEADER = src/Fluidium_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = NS_BLOCK_ASSERTIONS;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				GCC_WARN_MULTIPLE_DEFINITION_TYPES_FOR_SELECTOR = NO;
 				GCC_WARN_STRICT_SELECTOR_MATCH = NO;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				INFOPLIST_FILE = res/conf/Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = Fluidium;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 				STRIP_STYLE = all;
 			};
 			name = Release;
@@ -3316,26 +3311,26 @@
 		C05733CC08A9546B00998B17 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PREBINDING = NO;
-				SDKROOT = macosx10.6;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
 		C05733CD08A9546B00998B17 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
-				SDKROOT = macosx10.6;
+				SDKROOT = macosx;
 			};
 			name = Release;
 		};
@@ -3346,7 +3341,7 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = Cruz;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -3357,7 +3352,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				PRODUCT_NAME = Cruz;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -3369,7 +3364,7 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = PlugIns;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -3380,7 +3375,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				PRODUCT_NAME = PlugIns;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -3392,7 +3387,7 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = "Fluidium+PlugIns";
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -3403,7 +3398,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				PRODUCT_NAME = "Fluidium+PlugIns";
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;

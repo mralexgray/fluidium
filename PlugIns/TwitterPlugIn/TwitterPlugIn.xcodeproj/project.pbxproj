@@ -549,7 +549,11 @@
 			isa = PBXProject;
 			buildConfigurationList = 1DEB913E08733D840010E9CD /* Build configuration list for PBXProject "TwitterPlugIn" */;
 			compatibilityVersion = "Xcode 3.1";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				en,
+			);
 			mainGroup = 089C166AFE841209C02AAC07 /* TwitterPlugIn */;
 			projectDirPath = "";
 			projectReferences = (
@@ -793,8 +797,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
-				BUNDLE_LOADER = "$(SRCROOT)/../../Fluidium/build/$(CONFIGURATION)/Fluidium.app/Contents/MacOS/Fluidium";
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/Fluidium.app/Contents/MacOS/Fluidium";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -814,11 +818,12 @@
 					"\"$(SRCROOT)/../../Fluidium/lib/ParseKit/include\"",
 					"\"$(SRCROOT)/../../Fluidium/lib/TDAppKit/include\"",
 					"\"$(SRCROOT)/frameworks/yajl/include\"",
+					"\"$(BUILT_PRODUCTS_DIR)/Fluidium/Headers\"",
 				);
 				INFOPLIST_FILE = res/conf/Info.plist;
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				PRODUCT_NAME = Twitter;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 				WRAPPER_EXTENSION = fluidplugin;
 			};
 			name = Debug;
@@ -827,12 +832,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = (
-					x86_64,
-					i386,
-					ppc,
-				);
-				BUNDLE_LOADER = "$(SRCROOT)/../../Fluidium/build/$(CONFIGURATION)/Fluidium.app/Contents/MacOS/Fluidium";
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/Fluidium.app/Contents/MacOS/Fluidium";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_MODEL_TUNING = G5;
@@ -846,11 +847,12 @@
 					"\"$(SRCROOT)/../../Fluidium/lib/ParseKit/include\"",
 					"\"$(SRCROOT)/../../Fluidium/lib/TDAppKit/include\"",
 					"\"$(SRCROOT)/frameworks/yajl/include\"",
+					"\"$(BUILT_PRODUCTS_DIR)/Fluidium/Headers\"",
 				);
 				INFOPLIST_FILE = res/conf/Info.plist;
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
 				PRODUCT_NAME = Twitter;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 				WRAPPER_EXTENSION = fluidplugin;
 			};
 			name = Release;

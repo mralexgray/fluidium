@@ -37,7 +37,7 @@ NSString *const TDListItemPboardType = @"TDListItemPboardType";
 - (void)layoutItems;
 - (void)layoutItemsWhileDragging;
 - (NSUInteger)indexForItemWhileDraggingAtPoint:(NSPoint)p;
-- (TDListItem *)itemAtVisibleIndex:(NSUInteger)i;
+- (TDListItem *)itemAtVisibleIndex:(NSInteger)i;
 - (NSUInteger)visibleIndexForItemAtPoint:(NSPoint)p;
 - (TDListItem *)itemWhileDraggingAtIndex:(NSInteger)i;
 - (void)draggingSourceDragDidEnd;
@@ -181,7 +181,7 @@ NSString *const TDListItemPboardType = @"TDListItemPboardType";
 }
 
 
-- (TDListItem *)itemAtVisibleIndex:(NSUInteger)i {
+- (TDListItem *)itemAtVisibleIndex:(NSInteger)i {
     if (i < 0 || i >= [items count]) return nil;
     
     return [items objectAtIndex:i];
@@ -561,7 +561,7 @@ NSString *const TDListItemPboardType = @"TDListItemPboardType";
         
     NSUInteger itemCount = [items count];
     //if (dropIndex < 0 || NSNotFound == dropIndex) {// || dropIndex > itemCount) {
-    if (dropIndex < 0 || NSNotFound == dropIndex || dropIndex > itemCount) {
+    if (NSNotFound == dropIndex || dropIndex > itemCount) {
         dropIndex = itemCount;
     }
     
@@ -714,7 +714,7 @@ NSString *const TDListItemPboardType = @"TDListItemPboardType";
         if (isItemVisible) {
             TDListItem *item = [dataSource listView:self itemAtIndex:i];
             if (!item) {
-                [NSException raise:EXCEPTION_NAME format:@"nil list item view returned for index: %d by: %@", i, dataSource];
+                [NSException raise:EXCEPTION_NAME format:@"nil list item view returned for index: %ld by: %@", (unsigned long)i, dataSource];
             }
             item.index = i;
             [item setFrame:NSMakeRect(x, y, w, h)];
@@ -756,7 +756,7 @@ NSString *const TDListItemPboardType = @"TDListItemPboardType";
     
     [self setFrame:frame];
     
-    //NSLog(@"%s my bounds: %@, viewport bounds: %@", _cmd, NSStringFromRect([self bounds]), NSStringFromRect([[self superview] bounds]));
+    //NSLog(@"%@ my bounds: %@, viewport bounds: %@", NSStringFromSelector(_cmd), NSStringFromRect([self bounds]), NSStringFromRect([[self superview] bounds]));
     //NSLog(@"view count: %d, queue count: %d", [items count], [queue count]);
 }
 

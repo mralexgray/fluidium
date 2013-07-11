@@ -142,7 +142,7 @@
 
 
 - (NSDragOperation)listView:(TDListView *)lv validateDrop:(id <NSDraggingInfo>)dragInfo proposedIndex:(NSUInteger *)proposedDropIndex dropOperation:(TDListViewDropOperation *)proposedDropOperation {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     return NSDragOperationMove;
 }
 

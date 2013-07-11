@@ -74,7 +74,7 @@
 
 
 - (NSSet *)allMatchesFor:(NSSet *)inAssemblies {
-    NSAssert1(0, @"-[PKParser %s] must be overriden", _cmd);
+    NSAssert1(0, @"-[PKParser %@] must be overriden", NSStringFromSelector(_cmd));
     return nil;
 }
 
@@ -108,7 +108,7 @@
     } else 
 #endif
     if (preassembler) {
-        NSAssert2([preassembler respondsToSelector:preassemblerSelector], @"provided preassembler %@ should respond to %s", preassembler, preassemblerSelector);
+        NSAssert2([preassembler respondsToSelector:preassemblerSelector], @"provided preassembler %@ should respond to %@", preassembler, NSStringFromSelector(preassemblerSelector));
         for (PKAssembly *a in inAssemblies) {
             [preassembler performSelector:preassemblerSelector withObject:a];
         }
@@ -124,7 +124,7 @@
     } else 
 #endif
     if (assembler) {
-        NSAssert2([assembler respondsToSelector:assemblerSelector], @"provided assembler %@ should respond to %s", assembler, assemblerSelector);
+        NSAssert2([assembler respondsToSelector:assemblerSelector], @"provided assembler %@ should respond to %@", assembler, NSStringFromSelector(assemblerSelector));
         for (PKAssembly *a in outAssemblies) {
             [assembler performSelector:assemblerSelector withObject:a];
         }

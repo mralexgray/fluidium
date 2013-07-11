@@ -695,7 +695,11 @@
 			isa = PBXProject;
 			buildConfigurationList = C056398B08A954F8003078D8 /* Build configuration list for PBXProject "PSMTabBarControl" */;
 			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				en,
+			);
 			mainGroup = 0259C574FE90428111CA0C5A /* PSMTabBarControl */;
 			projectDirPath = "";
 			projectReferences = (
@@ -1032,13 +1036,13 @@
 				HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SRCROOT)/../../src\"";
 				INFOPLIST_FILE = "PSMTabBarControlFramework-Info.plist";
 				INSTALL_PATH = "@executable_path/../Frameworks";
-				ONLY_ACTIVE_ARCH_PRE_XCODE_3_1 = "$(NATIVE_ARCH_ACTUAL)";
+				ONLY_ACTIVE_ARCH_PRE_XCODE_3_1 = "$(NATIVE_ARCH_64)";
 				OTHER_LDFLAGS = (
 					"-seg1addr",
 					0xb0000000,
 				);
 				PRODUCT_NAME = PSMTabBarControl;
-				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
+				SDKROOT = macosx;
 				SDKROOT_i386 = /Developer/SDKs/MacOSX10.5.sdk;
 				SDKROOT_ppc = /Developer/SDKs/MacOSX10.5.sdk;
 				ZERO_LINK = NO;
@@ -1048,8 +1052,8 @@
 		C056398108A954F8003078D8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
-				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
+				ARCHS = "$(ARCHS_STANDARD_64_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_64_BIT_PRE_XCODE_3_1 = x86_64;
 				BUNDLE_LOADER = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -1075,7 +1079,7 @@
 					0xb0000000,
 				);
 				PRODUCT_NAME = PSMTabBarControl;
-				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
+				SDKROOT = macosx;
 				SDKROOT_i386 = /Developer/SDKs/MacOSX10.5.sdk;
 				SDKROOT_ppc = /Developer/SDKs/MacOSX10.5.sdk;
 			};

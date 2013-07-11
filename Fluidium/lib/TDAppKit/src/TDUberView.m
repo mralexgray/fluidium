@@ -712,7 +712,7 @@ static NSComparisonResult TDHSplitViewSubviewComparatorFunc(id viewA, id viewB, 
 
 
 - (void)splitViewDidResizeSubviews:(NSNotification *)n {
-    //NSLog(@"%s", _cmd);
+    //NSLog(@"%@", NSStringFromSelector(_cmd));
     [timer invalidate];
     self.timer = [NSTimer scheduledTimerWithTimeInterval:.1
                                                   target:self

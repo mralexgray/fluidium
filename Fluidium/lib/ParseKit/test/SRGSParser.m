@@ -649,7 +649,7 @@
 #pragma mark Assembler Methods
 
 - (void)didMatchWord:(PKAssembly *)a {
-//    NSLog(@"%s", _cmd);
+//    NSLog(@"%@", NSStringFromSelector(_cmd));
 //    NSLog(@"a: %@", a);
     PKToken *tok = [a pop];
     [a push:[PKLiteral literalWithString:tok.stringValue]];
@@ -657,7 +657,7 @@
 
 
 - (void)didMatchNum:(PKAssembly *)a {
-//    NSLog(@"%s", _cmd);
+//    NSLog(@"%@", NSStringFromSelector(_cmd));
 //    NSLog(@"a: %@", a);
     PKToken *tok = [a pop];
     [a push:[PKLiteral literalWithString:tok.stringValue]];
@@ -665,7 +665,7 @@
 
 
 - (void)didMatchQuotedString:(PKAssembly *)a {
-//    NSLog(@"%s", _cmd);
+//    NSLog(@"%@", NSStringFromSelector(_cmd));
 //    NSLog(@"a: %@", a);
     PKToken *tok = [a pop];
     NSString *s = [tok.stringValue stringByTrimmingQuotes];
@@ -682,7 +682,7 @@
 
 
 - (void)didMatchStar:(PKAssembly *)a {
-//    NSLog(@"%s", _cmd);
+//    NSLog(@"%@", NSStringFromSelector(_cmd));
 //    NSLog(@"a: %@", a);
     PKRepetition *p = [PKRepetition repetitionWithSubparser:[a pop]];
     [a push:p];
@@ -690,7 +690,7 @@
 
 
 - (void)didMatchQuestion:(PKAssembly *)a {
-//    NSLog(@"%s", _cmd);
+//    NSLog(@"%@", NSStringFromSelector(_cmd));
 //    NSLog(@"a: %@", a);
     PKAlternation *p = [PKAlternation alternation];
     [p add:[a pop]];
@@ -700,7 +700,7 @@
 
 
 - (void)didMatchAnd:(PKAssembly *)a {
-//    NSLog(@"%s", _cmd);
+//    NSLog(@"%@", NSStringFromSelector(_cmd));
 //    NSLog(@"a: %@", a);
     id top = [a pop];
     PKSequence *p = [PKSequence sequence];
@@ -711,7 +711,7 @@
 
 
 - (void)didMatchOr:(PKAssembly *)a {
-//    NSLog(@"%s", _cmd);
+//    NSLog(@"%@", NSStringFromSelector(_cmd));
 //    NSLog(@"a: %@", a);
     id top = [a pop];
 //    NSLog(@"top: %@", top);
@@ -724,7 +724,7 @@
 
 
 - (void)didMatchAssignment:(PKAssembly *)a {
-//    NSLog(@"%s", _cmd);
+//    NSLog(@"%@", NSStringFromSelector(_cmd));
 //    NSLog(@"a: %@", a);
     id val = [a pop];
     PKToken *keyTok = [a pop];
@@ -736,7 +736,7 @@
 
 
 - (void)didMatchVariable:(PKAssembly *)a {
-//    NSLog(@"%s", _cmd);
+//    NSLog(@"%@", NSStringFromSelector(_cmd));
 //    NSLog(@"a: %@", a);
     PKToken *keyTok = [a pop];
     id val = [a.target objectForKey:keyTok.stringValue];

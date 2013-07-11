@@ -155,11 +155,12 @@ NSString *const FUPlugInViewControllerDrawerKey = @"FUPlugInViewControllerDrawer
 
 
 - (void)loadPlugInsAtPath:(NSString *)dirPath {
-    NSFileManager *mgr = [NSFileManager defaultManager];
-    [mgr createDirectoryAtPath:dirPath withIntermediateDirectories:YES attributes:nil error:nil];
+
+
+    [NSFileManager.defaultManager createDirectoryAtPath:dirPath withIntermediateDirectories:YES attributes:nil error:nil];
     
     NSMutableArray *filenames = [NSMutableArray array];    
-    [filenames addObjectsFromArray:[mgr directoryContentsAtPath:dirPath havingExtension:@"fluidplugin" error:nil]];
+    [filenames addObjectsFromArray:[NSFileManager.defaultManager directoryContentsAtPath:dirPath havingExtension:@"fluidplugin" error:nil]];
     
     for (NSString *filename in filenames) {
         NSString *path = [dirPath stringByAppendingPathComponent:filename];
@@ -173,19 +174,23 @@ NSString *const FUPlugInViewControllerDrawerKey = @"FUPlugInViewControllerDrawer
 
 
 - (void)loadPlugInAtPath:(NSString *)path {
-    NSBundle *bundle = [NSBundle bundleWithPath:path];
 
+    NSBundle *bundle = [NSBundle bundleWithPath:path];
     FUPlugIn *plugIn = nil;
 
     if ([[bundle bundleIdentifier] hasPrefix:@"com.fluidapp.BrowsaPlugIn"]) {
-        NSInteger num = [[FUUserDefaults instance] numberOfBrowsaPlugIns];
+        NSInteger num = [FUUserDefaults.instance numberOfBrowsaPlugIns];
         NSInteger i = 0;
         for ( ; i < num; i++) {
-            plugIn = [[[[bundle principalClass] alloc] initWithPlugInAPI:plugInAPI] autorelease];
+				Class c = bundle.principalClass;
+				NSLog(@"Principal: %@ pluginAPI: %@", NSStringFromClass(c), plugInAPI);
+            plugIn = [[c.alloc initWithPlugInAPI:plugInAPI] autorelease];
             [self loadPlugIn:plugIn];
         }
     } else {
-        plugIn = [[[[bundle principalClass] alloc] initWithPlugInAPI:plugInAPI] autorelease];
+			Class c = bundle.principalClass;
+			NSLog(@"Principal: %@ pluginAPI: %@", NSStringFromClass(c), plugInAPI);
+        plugIn = [[c.alloc initWithPlugInAPI:plugInAPI] autorelease];
         [self loadPlugIn:plugIn];
     }
 }
