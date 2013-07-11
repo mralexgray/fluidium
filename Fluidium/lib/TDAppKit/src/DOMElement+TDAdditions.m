@@ -34,7 +34,7 @@
         
         NSAssert([siblings count], @"");
         NSUInteger i = [siblings indexOfObject:el] + 1;
-        NSString *s = [NSString stringWithFormat:@"/%@[%d]", tagName, i];
+        NSString *s = [NSString stringWithFormat:@"/%@[%ld]", tagName, i];
         [xpath insertString:s atIndex:0];
         
         el = (DOMElement *)parent;

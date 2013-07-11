@@ -62,7 +62,7 @@
 
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"<FUWindow %p %d>", self, [self windowNumber]];
+    return [NSString stringWithFormat:@"<FUWindow %p %ld>", self, [self windowNumber]];
 }
 
 
@@ -260,7 +260,7 @@
     NSInteger i = 0;
     NSInteger c = [[FUUserDefaults instance] numberOfBrowsaPlugIns];
     for ( ; i < c; i++) {
-        NSString *identifier = [NSString stringWithFormat:@"com.fluidapp.BrowsaPlugIn%d", i];
+        NSString *identifier = [NSString stringWithFormat:@"com.fluidapp.BrowsaPlugIn%ld", i];
         [self sendMouseMovedEvent:evt toPlugInWithIdentifier:identifier];
     }
 }

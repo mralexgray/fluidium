@@ -48,7 +48,7 @@ static NSUInteger sTagCount;
 - (id)initWithURLDownload:(NSURLDownload *)aDownload {
     if (self = [super init]) {
         self.download = aDownload;
-        self.tagString = [NSString stringWithFormat:@"%d", ++sTagCount];
+        self.tagString = [NSString stringWithFormat:@"%ld", ++sTagCount];
         self.URL = [[aDownload request] URL];
         self.filename = [[URL absoluteString] lastPathComponent];
         self.expectedLength = 0;
@@ -91,7 +91,7 @@ static NSUInteger sTagCount;
 
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"<FUDownloadItem %p \n\tfilename: %@, \n\tpath: %@, \n\tURL: %@, \n\treceivedLength: %f, \n\texpectedLength: %f>", self, filename, path, URL, receivedLength, expectedLength];
+    return [NSString stringWithFormat:@"<FUDownloadItem %p \n\tfilename: %@, \n\tpath: %@, \n\tURL: %@, \n\treceivedLength: %lu, \n\texpectedLength: %lu>", self, filename, path, URL, receivedLength, expectedLength];
 }
 
 
@@ -170,7 +170,7 @@ static NSUInteger sTagCount;
         if (minutes <= 1) {
             self.remainingTimeString = @" – 1 minute remaining";
         } else {
-            self.remainingTimeString = [NSString stringWithFormat:@" – %d minutes remaining", minutes];
+            self.remainingTimeString = [NSString stringWithFormat:@" – %ldinutes remaining", minutes];
         }
     }
 }

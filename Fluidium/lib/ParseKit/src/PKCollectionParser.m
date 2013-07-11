@@ -29,7 +29,7 @@
         [cp add:p1];
         
         PKParser *p = nil;
-        while (p = va_arg(rest, PKParser *)) {
+        while ((p = va_arg(rest, PKParser *))) {
             [cp add:p];
         }
     }

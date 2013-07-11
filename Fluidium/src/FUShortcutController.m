@@ -130,7 +130,7 @@
     if ([toks count]) {
         NSInteger i = 1;
         for (PKToken *tok in toks) {
-            NSString *s = [NSString stringWithFormat:@"$%d", i++];
+            NSString *s = [NSString stringWithFormat:@"$%ld", i++];
             if (NSNotFound != [fmt rangeOfString:s].location) {
                 [mfmt replaceOccurrencesOfString:s
                                       withString:[tok stringValue]

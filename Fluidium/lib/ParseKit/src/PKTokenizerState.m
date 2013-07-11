@@ -80,7 +80,7 @@
 
 - (void)append:(PKUniChar)c {
     NSParameterAssert(c > -1);
-    [stringbuf appendFormat:@"%C", c];
+    [stringbuf appendFormat:@"%d", c];
 }
 
 

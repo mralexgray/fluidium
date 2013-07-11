@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 45;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -78,6 +78,10 @@
 /* Begin PBXBuildFile section */
 		1DDD582C0DA1D0D100B32029 /* FUWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1DDD58280DA1D0D100B32029 /* FUWindow.xib */; };
 		1DDD582D0DA1D0D100B32029 /* FUMainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1DDD582A0DA1D0D100B32029 /* FUMainMenu.xib */; };
+		7B7A859615F880CA0071741C /* TDAppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B7A859415F880B50071741C /* TDAppKit.framework */; };
+		7B7A859715F880D50071741C /* TDAppKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7B7A859415F880B50071741C /* TDAppKit.framework */; };
+		7B7A859A15F8826A0071741C /* PSMTabBarFramework.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7B7A859915F8826A0071741C /* PSMTabBarFramework.framework */; };
+		7B7A859B15F882760071741C /* PSMTabBarFramework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B7A859915F8826A0071741C /* PSMTabBarFramework.framework */; };
 		8D15AC2C0486D014006FF6A4 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */; };
 		8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165FFE840EACC02AAC07 /* InfoPlist.strings */; };
 		8D15AC340486D014006FF6A4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */; };
@@ -105,12 +109,9 @@
 		D31C7B0611129A1900563A4D /* FUHandlerPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = D31C7B0511129A1900563A4D /* FUHandlerPreferences.m */; };
 		D31C7B0A11129A5B00563A4D /* FUHandlerController.m in Sources */ = {isa = PBXBuildFile; fileRef = D31C7B0911129A5B00563A4D /* FUHandlerController.m */; };
 		D31C7B2811129C0E00563A4D /* FUHandlerPreferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = D31C7B2611129C0E00563A4D /* FUHandlerPreferences.xib */; };
-		D31CC0D410EFCB990013347D /* TDAppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D31CC0CA10EFCB590013347D /* TDAppKit.framework */; };
-		D31CC10B10EFCCE60013347D /* TDAppKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = D31CC0CA10EFCB590013347D /* TDAppKit.framework */; };
 		D328007F10CC371E00BB363B /* PSMTabBarControl.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = D328FCA310CC339F00BB363B /* PSMTabBarControl.framework */; };
 		D32803F410CC7BFA00BB363B /* FUBookmarkController.m in Sources */ = {isa = PBXBuildFile; fileRef = D32803F310CC7BFA00BB363B /* FUBookmarkController.m */; };
 		D328FB1310CB9E2600BB363B /* FUBookmarkWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = D328FB1110CB9E2600BB363B /* FUBookmarkWindow.xib */; };
-		D328FD5710CC33F500BB363B /* PSMTabBarControl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D328FCA310CC339F00BB363B /* PSMTabBarControl.framework */; };
 		D332221310C8C19500151693 /* FUDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = D332221210C8C19500151693 /* FUDocument.m */; };
 		D332221610C8C1A500151693 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D332221510C8C1A500151693 /* main.m */; };
 		D332222E10C8C2A100151693 /* FUWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = D332222D10C8C2A100151693 /* FUWindowController.m */; };
@@ -541,13 +542,6 @@
 			remoteGlobalIDString = D31CBFE910EFB9630013347D;
 			remoteInfo = ListViewDemoApp;
 		};
-		D31CC0CD10EFCB770013347D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D31CC0C010EFCB590013347D /* TDAppKit.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 8DC2EF4F0486A6940098B216;
-			remoteInfo = TDAppKit;
-		};
 		D328FC9E10CC339F00BB363B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D328FC9410CC339E00BB363B /* PSMTabBarControl.xcodeproj */;
@@ -567,13 +561,6 @@
 			containerPortal = D328FC9410CC339E00BB363B /* PSMTabBarControl.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 53DF68FD067E5B5A0090B5B0;
-			remoteInfo = PSMTabBarControlFramework;
-		};
-		D328FF4F10CC340C00BB363B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D328FC9410CC339E00BB363B /* PSMTabBarControl.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 53DF68FC067E5B5A0090B5B0;
 			remoteInfo = PSMTabBarControlFramework;
 		};
 		D32E8C2710E593AB00445B4C /* PBXContainerItemProxy */ = {
@@ -816,12 +803,13 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				7B7A859A15F8826A0071741C /* PSMTabBarFramework.framework in Copy Frameworks */,
 				D30BC46610E187C10019816B /* Growl.framework in Copy Frameworks */,
 				D3189E9810F7000F00B6AA21 /* Sparkle.framework in Copy Frameworks */,
 				D3F941601102F3B900267DA0 /* ShortcutRecorder.framework in Copy Frameworks */,
 				D328007F10CC371E00BB363B /* PSMTabBarControl.framework in Copy Frameworks */,
-				D31CC10B10EFCCE60013347D /* TDAppKit.framework in Copy Frameworks */,
 				D346E59A10CE43E500BA0B15 /* ParseKit.framework in Copy Frameworks */,
+				7B7A859715F880D50071741C /* TDAppKit.framework in Copy Frameworks */,
 				D3414BC11103884000CCC986 /* UMEKit.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
@@ -901,6 +889,8 @@
 		2A37F4BAFDCFA73011CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = English; path = English.lproj/Credits.rtf; sourceTree = "<group>"; };
 		2A37F4C4FDCFA73011CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		2A37F4C5FDCFA73011CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		7B7A859415F880B50071741C /* TDAppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = TDAppKit.framework; path = lib/TDAppKit/build/Release/TDAppKit.framework; sourceTree = "<group>"; };
+		7B7A859915F8826A0071741C /* PSMTabBarFramework.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PSMTabBarFramework.framework; path = ../../psmtabbar.withimages/build/Release/PSMTabBarFramework.framework; sourceTree = "<group>"; };
 		8D15AC370486D014006FF6A4 /* Fluidium.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Fluidium.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D305193310C909E400AFF325 /* FUTabController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FUTabController.h; path = include/Fluidium/FUTabController.h; sourceTree = "<group>"; };
 		D305193410C909E400AFF325 /* FUTabController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = FUTabController.m; path = src/FUTabController.m; sourceTree = "<group>"; };
@@ -1301,15 +1291,15 @@
 				8D15AC340486D014006FF6A4 /* Cocoa.framework in Frameworks */,
 				D3F4C3D410C8C7A300E0B474 /* WebKit.framework in Frameworks */,
 				D362A29011EC138A004FC3B0 /* Security.framework in Frameworks */,
+				7B7A859B15F882760071741C /* PSMTabBarFramework.framework in Frameworks */,
 				D3F0C97311EBC176002E2BA9 /* SecurityInterface.framework in Frameworks */,
 				D386705311F96D9E00248091 /* JavaScriptCore.framework in Frameworks */,
 				D30BC44F10E187A40019816B /* Growl.framework in Frameworks */,
 				D3189E8F10F6FFFA00B6AA21 /* Sparkle.framework in Frameworks */,
 				D3F9415E1102F3A500267DA0 /* ShortcutRecorder.framework in Frameworks */,
-				D328FD5710CC33F500BB363B /* PSMTabBarControl.framework in Frameworks */,
-				D31CC0D410EFCB990013347D /* TDAppKit.framework in Frameworks */,
 				D346E71210CE516800BA0B15 /* ParseKit.framework in Frameworks */,
 				D3414BD81103889B00CCC986 /* UMEKit.framework in Frameworks */,
+				7B7A859615F880CA0071741C /* TDAppKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1378,6 +1368,7 @@
 		2A37F4AAFDCFA73011CA2CEA /* FluidApp */ = {
 			isa = PBXGroup;
 			children = (
+				7B7A859915F8826A0071741C /* PSMTabBarFramework.framework */,
 				D328FC9410CC339E00BB363B /* PSMTabBarControl.xcodeproj */,
 				D31CC0C010EFCB590013347D /* TDAppKit.xcodeproj */,
 				D346E48410CE434A00BA0B15 /* ParseKit.xcodeproj */,
@@ -1391,6 +1382,7 @@
 				2A37F4B8FDCFA73011CA2CEA /* Resources */,
 				2A37F4C3FDCFA73011CA2CEA /* Frameworks */,
 				19C28FB0FE9D524F11CA2CBB /* Products */,
+				7B7A859415F880B50071741C /* TDAppKit.framework */,
 			);
 			name = FluidApp;
 			sourceTree = "<group>";
@@ -2182,8 +2174,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				D328FF5010CC340C00BB363B /* PBXTargetDependency */,
-				D31CC0CE10EFCB770013347D /* PBXTargetDependency */,
 				D346E58F10CE437800BA0B15 /* PBXTargetDependency */,
 				D3414BC01103883100CCC986 /* PBXTargetDependency */,
 			);
@@ -2224,8 +2214,11 @@
 /* Begin PBXProject section */
 		2A37F4A9FDCFA73011CA2CEA /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0440;
+			};
 			buildConfigurationList = C05733CB08A9546B00998B17 /* Build configuration list for PBXProject "Fluidium" */;
-			compatibilityVersion = "Xcode 3.1";
+			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
@@ -2936,16 +2929,6 @@
 			name = TabsPlugIn;
 			targetProxy = D309FCD811DFE32000C30AA8 /* PBXContainerItemProxy */;
 		};
-		D31CC0CE10EFCB770013347D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = TDAppKit;
-			targetProxy = D31CC0CD10EFCB770013347D /* PBXContainerItemProxy */;
-		};
-		D328FF5010CC340C00BB363B /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = PSMTabBarControlFramework;
-			targetProxy = D328FF4F10CC340C00BB363B /* PBXContainerItemProxy */;
-		};
 		D33B1DC31116AF7700F754AD /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D38423141102D50D00605809 /* Fluidium+PlugIns */;
@@ -3241,36 +3224,32 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = (
-					x86_64,
-					i386,
-					ppc,
-				);
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"\"$(SRCROOT)/lib/ShortcutRecorder\"",
-					"\"$(SRCROOT)/lib/PSMTabBarControl/build/$(CONFIGURATION)\"",
-					"\"$(SRCROOT)/lib/TDAppKit/build/$(CONFIGURATION)\"",
 					"\"$(SRCROOT)/lib/ParseKit/build/$(CONFIGURATION)\"",
 					"\"$(SRCROOT)/lib/Growl\"",
 					"\"$(SRCROOT)/build/Debug\"",
 					"\"$(SRCROOT)/lib/Sparkle\"",
+					"\"$(SRCROOT)/../../psmtabbar.withimages/build/Release\"",
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = src/Fluidium_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = FUDEBUG;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				GCC_WARN_MULTIPLE_DEFINITION_TYPES_FOR_SELECTOR = NO;
 				GCC_WARN_STRICT_SELECTOR_MATCH = NO;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				INFOPLIST_FILE = res/conf/Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = Fluidium;
-				SDKROOT = macosx10.5;
+				SDKROOT = "";
 			};
 			name = Debug;
 		};
@@ -3278,37 +3257,33 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = (
-					x86_64,
-					i386,
-					ppc,
-				);
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				FRAMEWORK_SEARCH_PATHS = (
 					"\"$(SRCROOT)/lib/ShortcutRecorder\"",
-					"\"$(SRCROOT)/lib/PSMTabBarControl/build/$(CONFIGURATION)\"",
-					"\"$(SRCROOT)/lib/TDAppKit/build/$(CONFIGURATION)\"",
 					"\"$(SRCROOT)/lib/ParseKit/build/$(CONFIGURATION)\"",
 					"\"$(SRCROOT)/lib/Growl\"",
 					"\"$(SRCROOT)/build/Debug\"",
 					"\"$(SRCROOT)/lib/Sparkle\"",
+					"\"$(SRCROOT)/../../psmtabbar.withimages/build/Release\"",
 				);
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = src/Fluidium_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = NS_BLOCK_ASSERTIONS;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				GCC_WARN_MULTIPLE_DEFINITION_TYPES_FOR_SELECTOR = NO;
 				GCC_WARN_STRICT_SELECTOR_MATCH = NO;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				INFOPLIST_FILE = res/conf/Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = Fluidium;
-				SDKROOT = macosx10.5;
+				SDKROOT = "";
 				STRIP_STYLE = all;
 			};
 			name = Release;
@@ -3316,48 +3291,47 @@
 		C05733CC08A9546B00998B17 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
-				GCC_C_LANGUAGE_STANDARD = gnu99;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				PREBINDING = NO;
-				SDKROOT = macosx10.6;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
 		C05733CD08A9546B00998B17 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
-				GCC_C_LANGUAGE_STANDARD = gnu99;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				PREBINDING = NO;
-				SDKROOT = macosx10.6;
+				SDKROOT = macosx;
 			};
 			name = Release;
 		};
 		D33B1DC01116AF7000F754AD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = Cruz;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
 		D33B1DC11116AF7000F754AD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				PRODUCT_NAME = Cruz;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -3365,22 +3339,23 @@
 		D38422ED1102D38B00605809 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = PlugIns;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
 		D38422EE1102D38B00605809 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				PRODUCT_NAME = PlugIns;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -3388,22 +3363,23 @@
 		D38423151102D50D00605809 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = "Fluidium+PlugIns";
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
 		D38423161102D50D00605809 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				PRODUCT_NAME = "Fluidium+PlugIns";
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -3412,11 +3388,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = (
-					x86_64,
-					i386,
-					ppc,
-				);
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../fake/lib/AquaticPrime\"/**",
@@ -3429,7 +3402,6 @@
 					"\"$(SRCROOT)/lib/Sparkle\"",
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -3442,9 +3414,10 @@
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../fake/src\"";
 				INFOPLIST_FILE = "res/conf/Fake-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "-lcrypto";
 				PRODUCT_NAME = Fake;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -3452,11 +3425,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = (
-					x86_64,
-					i386,
-					ppc,
-				);
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -3469,7 +3439,6 @@
 					"\"$(SRCROOT)/build/Debug\"",
 					"\"$(SRCROOT)/lib/Sparkle\"",
 				);
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -3483,9 +3452,10 @@
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../fake/src\"";
 				INFOPLIST_FILE = "res/conf/Fake-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "-lcrypto";
 				PRODUCT_NAME = Fake;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 				STRIP_STYLE = all;
 			};
 			name = Release;
@@ -3493,22 +3463,23 @@
 		D3C2E4D311D7EEBE00106E86 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = PlugIns;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
 		D3C2E4D411D7EEBE00106E86 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				PRODUCT_NAME = PlugIns;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -3516,22 +3487,23 @@
 		D3C2E4F911D7EF7A00106E86 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = "Fake+PlugIns";
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
 		D3C2E4FA11D7EF7A00106E86 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				PRODUCT_NAME = "Fake+PlugIns";
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;

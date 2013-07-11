@@ -799,7 +799,11 @@
 			isa = PBXProject;
 			buildConfigurationList = 1DEB91B108733DA50010E9CD /* Build configuration list for PBXProject "UMEKit" */;
 			compatibilityVersion = "Xcode 3.1";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				en,
+			);
 			mainGroup = 0867D691FE84028FC02AAC07 /* UMEKit */;
 			productRefGroup = 034768DFFF38A50411DB9C8B /* Products */;
 			projectDirPath = "";
@@ -1014,6 +1018,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				COPY_PHASE_STRIP = NO;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -1030,8 +1035,9 @@
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/include\"";
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = build/Debug;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = UMEKit;
-				SDKROOT = macosx10.5;
+				SDKROOT = "";
 				UMEKIT_FRAMEWORK_TARGET_PATH = "@executable_path/../Frameworks";
 				WRAPPER_EXTENSION = framework;
 			};
@@ -1041,6 +1047,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -1055,8 +1062,9 @@
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/include\"";
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = build/Release;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = UMEKit;
-				SDKROOT = macosx10.5;
+				SDKROOT = "";
 				UMEKIT_FRAMEWORK_TARGET_PATH = "@executable_path/../Frameworks";
 				WRAPPER_EXTENSION = framework;
 			};
